@@ -1,0 +1,17 @@
+body { font-family: Arial, sans-serif; margin: 0; padding: 0; background:#f5f7fb; color:#111; }
+.auth-wrapper { display:flex; gap:20px; padding:40px; align-items:flex-start; }
+.card { background:white; padding:16px; border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,0.08); width:300px;}
+.card input { display:block; width:100%; padding:8px; margin:8px 0; border:1px solid #ddd; border-radius:4px;}
+.card button { width:100%; padding:10px; border:0; background:#2b6cb0; color:white; border-radius:6px;}
+.error { color:#b00020; margin-bottom:8px; }
+
+.dashboard { padding:20px; }
+header { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;}
+.create form { display:flex; gap:8px; }
+.create input { padding:8px; border-radius:4px; border:1px solid #ddd; }
+.lists { display:flex; gap:12px; }
+.column { background:white; padding:12px; border-radius:8px; width:33%; min-height:200px; box-shadow:0 2px 6px rgba(0,0,0,0.04); }
+.task-card { background:#fff; padding:8px; margin-bottom:8px; border-radius:6px; border-left:4px solid #ddd; }
+.task-card.done { opacity:0.8; text-decoration:line-through; border-left-color: #48bb78; }
+.task-actions { display:flex; gap:8px; margin-top:8px; }
+.task-actions button { padding:6px 8px; border-radius:6px; border:0; cursor:pointer; }
