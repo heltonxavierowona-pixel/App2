@@ -33,9 +33,14 @@ export function Auth() {
 
   return (
     <div className="auth">
-      <div className="auth-intro">
-        <p className="brand-mark">NUMERA</p>
-        <h1>Vos importations et exportations, du bon de commande à la livraison.</h1>
+      <div className="auth-intro hero">
+        <p className="auth-brand">
+          <img src="/numera-mark.svg" alt="" width="52" height="52" />
+          <span>NUMERA</span>
+        </p>
+        <h1>
+          Chaque conteneur suivi, du bon de commande <em>à la livraison.</em>
+        </h1>
         <p>Commandes, conteneurs, pièces de dossier et coût de revient au même endroit, en FCFA.</p>
       </div>
       <form className="auth-form" onSubmit={submit}>

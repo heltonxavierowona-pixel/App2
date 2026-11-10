@@ -30,9 +30,14 @@ export function Onboarding({ email, onDone }: { email: string; onDone: () => Pro
 
   return (
     <div className="auth">
-      <div className="auth-intro">
-        <p className="brand-mark">NUMERA</p>
-        <h1>Bienvenue. Présentez-nous votre entreprise.</h1>
+      <div className="auth-intro hero">
+        <p className="auth-brand">
+          <img src="/numera-mark.svg" alt="" width="52" height="52" />
+          <span>NUMERA</span>
+        </p>
+        <h1>
+          Bienvenue. Présentez-nous <em>votre entreprise.</em>
+        </h1>
         <p>Vos données restent privées : seuls les membres de votre entreprise y ont accès.</p>
       </div>
       <form className="auth-form" onSubmit={submit}>

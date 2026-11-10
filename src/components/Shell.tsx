@@ -21,6 +21,7 @@ export function Shell({ section, children }: { section: string; children: ReactN
       </a>
       <header className="topbar">
         <div className="brand">
+          <img className="brand-logo" src="/numera-mark.svg" alt="" width="32" height="32" />
           <span className="brand-mark">NUMERA</span>
           <span className="brand-org">{org.name}</span>
         </div>

@@ -3,13 +3,18 @@
 Surface de travail (mode « operate ») : la clarté passe avant l'effet.
 
 - **Thème.** Clair, fort contraste : l'application se lit dehors, en plein soleil.
-- **Palette.** Sable pour le fond (`--sand-*`), bleu pétrole pour la structure et les étapes
-  franchies (`--petrol-*`), ocre pour l'action principale (`--ocre-600`). Vert, ambre et rouge
-  sont réservés aux états (livré, au port, retard ou pièce manquante).
-- **Typographie.** Archivo variable, un seul fichier auto-hébergé (35 Ko). Chiffres tabulaires
-  partout. Corps 16 px, jamais sous 12 px.
+- **Marque.** Le logo NUMERA (`public/numera-mark.svg`, repris de numera-agentic) figure dans
+  la barre du haut, sur l'écran de connexion et comme icône du site.
+- **Palette.** Celle du logo : bleu marine pour la structure (`--navy-*`), vert pour l'action
+  et la progression (`--green-*`), fond clair bleuté (`--mist-*`). Ambre et rouge sont réservés
+  aux états (au port, retard ou pièce manquante).
+- **Typographie.** Plus Jakarta Sans variable, un seul fichier auto-hébergé (27 Ko), en graisse
+  800 pour les titres et les chiffres clés. Chiffres tabulaires partout. Corps 16 px.
+- **En-têtes.** Chaque écran s'ouvre sur un bandeau bleu marine que la première carte
+  chevauche. L'accueil et la connexion y ajoutent le motif du logo (barres et flèche) et la
+  marge du mois en très grand.
 - **Signature.** La « ligne maritime » : les six étapes d'une expédition dessinées comme les
-  escales d'une route. Horizontale dans les listes, verticale avec les dates sur la fiche. Le
+  escales d'une route, en vert pour le chemin parcouru. Horizontale dans les listes, verticale avec les dates sur la fiche. Le
   tronçon en cours passe en pointillés rouges quand l'expédition est en retard.
 - **Navigation.** Cinq onglets en bas sur téléphone, colonne à gauche à partir de 960 px.
   Formulaires en pleine page, pas de fenêtres modales.

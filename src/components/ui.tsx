@@ -68,7 +68,7 @@ export function RouteLine({ status, late = false }: { status: Status; late?: boo
       aria-label={`Étape ${current + 1} sur ${STATUSES.length} : ${STATUS_LABEL[status]}${late ? ', en retard' : ''}`}
     >
       {STATUSES.map((s, i) => (
-        <li key={s} className={i < current ? 'done' : i === current ? 'current' : 'todo'} />
+        <li key={s} className={i < current || status === 'delivered' ? 'done' : i === current ? 'current' : 'todo'} />
       ))}
     </ol>
   )
@@ -97,7 +97,7 @@ export function RouteDetail({
       {stops.map((stop, i) => (
         <li
           key={stop.status}
-          className={i < current ? 'done' : i === current ? 'current' : 'todo'}
+          className={i < current || status === 'delivered' ? 'done' : i === current ? 'current' : 'todo'}
           aria-current={i === current ? 'step' : undefined}
         >
           <span className="route-stop-name">{STATUS_LABEL[stop.status]}</span>
@@ -123,15 +123,18 @@ export function PageHeader({
   title,
   back,
   action,
+  hero = false,
   children,
 }: {
   title: string
   back?: string
   action?: ReactNode
+  /** Bandeau orné du motif du logo, pour l'accueil. */
+  hero?: boolean
   children?: ReactNode
 }) {
   return (
-    <header className="page-header">
+    <header className={`page-header${hero ? ' hero' : ''}`}>
       {back && (
         <a className="back-link" href={`#${back}`}>
           <Icon name="back" size={18} />

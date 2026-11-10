@@ -43,9 +43,20 @@ export default function Dashboard() {
 
   return (
     <>
-      <PageHeader title="Tableau de bord" />
+      <PageHeader title="Tableau de bord" hero>
+        <a className="kpi" href="#/couts">
+          <span className="kpi-label">Marge de {monthName.format(new Date())}</span>
+          <span className={`kpi-value${margin < 0 ? ' neg' : ''}`}>
+            {fcfa(margin).replace(/\sFCFA$/, '')} <small>FCFA</small>
+          </span>
+          <span className="kpi-note">
+            {lots ? `sur ${lots} lot${lots > 1 ? 's' : ''} livré${lots > 1 ? 's' : ''} ce mois-ci` : 'aucun lot livré ce mois-ci'}
+            <Icon name="chevron" size={16} />
+          </span>
+        </a>
+      </PageHeader>
 
-      <section className="stats" aria-label="Indicateurs">
+      <section className="stats" aria-label="Expéditions">
         <a className="stat" href="#/expeditions?filtre=en-cours">
           <span className="stat-label">En cours</span>
           <span className="stat-value">{active.length}</span>
@@ -60,13 +71,6 @@ export default function Dashboard() {
           <span className="stat-label">Arrivées</span>
           <span className="stat-value">{arrived.length}</span>
           <span className="stat-note">au port, à livrer</span>
-        </a>
-        <a className="stat stat-wide" href="#/couts">
-          <span className="stat-label">Marge de {monthName.format(new Date())}</span>
-          <span className={`stat-value stat-money${margin < 0 ? ' neg' : ''}`}>{fcfa(margin)}</span>
-          <span className="stat-note">
-            {lots ? `sur ${lots} lot${lots > 1 ? 's' : ''} livré${lots > 1 ? 's' : ''}` : 'aucun lot livré ce mois-ci'}
-          </span>
         </a>
       </section>
 
