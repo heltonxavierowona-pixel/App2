@@ -14,6 +14,31 @@ fournisseurs, expéditions, pièces de dossier et coût de revient, en FCFA.
 L'écran **Équipe** (icône en haut à droite) permet à un administrateur d'inviter ses collègues
 par e-mail et de les retirer.
 
+## Offres et paiement
+
+Trois offres, définies dans la table `plans` : Découverte (gratuite, 2 expéditions en cours,
+1 utilisateur), PME (15 000 FCFA par mois, 3 utilisateurs) et Transitaire (35 000 FCFA par mois,
+illimitée). Une nouvelle entreprise commence par 14 jours d'essai de l'offre PME, puis retombe sur
+Découverte tant qu'elle n'a pas payé. Les limites sont appliquées par la base.
+
+Le paiement se fait par lien, comme sur numera-agentic :
+
+1. le propriétaire de la plateforme enregistre un lien de paiement par offre et par période
+   (Équipe > Plateforme) ;
+2. le client choisit une offre (Équipe > Abonnement) et reçoit ce lien ;
+3. il paie, puis saisit la référence de sa transaction ;
+4. le propriétaire vérifie le paiement et le valide : l'offre est active pour un mois ou un an.
+
+Pour désigner un propriétaire de la plateforme, dans l'éditeur SQL de Supabase :
+
+```sql
+insert into public.platform_admins (user_id)
+select id from auth.users where email = 'adresse@exemple.com';
+```
+
+Les prix, les limites, la durée de l'essai et la durée de validité des liens se modifient dans les
+tables `plans` et `platform_settings`.
+
 ## Stack
 
 - Vite + React + TypeScript, sans bibliothèque d'interface (CSS maison, une police auto-hébergée).
@@ -52,7 +77,7 @@ cadre). Si le projet Supabase n'est pas sur `*.supabase.co`, adapter `connect-sr
 
 ```bash
 npm test                 # calculs : conversion, coût de revient, marge, retards
-SUPABASE_ANON_KEY=… npm run test:isolation   # isolation entre entreprises, sur la pile locale
+SUPABASE_ANON_KEY=… npm run test:isolation   # isolation, invitations, offres et paiement, sur la pile locale
 ```
 
 ## Règles de calcul

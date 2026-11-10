@@ -16,6 +16,9 @@ export const supabase = createClient(url ?? 'http://localhost', key ?? 'missing'
 export function explain(error: { message: string; code?: string } | Error | unknown): string {
   const e = error as { message?: string; code?: string }
   const msg = e?.message ?? ''
+  // Messages rédigés en français par la base (limites d'offre, validations) : on les affiche tels quels.
+  if (e?.code === 'NUM01' || e?.code === '22023') return msg
+  if (e?.code === '42501' && /propriétaire|offre/.test(msg)) return msg
   if (/failed to fetch|networkerror|load failed/i.test(msg))
     return 'Connexion impossible. Vérifiez votre réseau puis réessayez.'
   if (e?.code === '23505')

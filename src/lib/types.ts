@@ -24,6 +24,46 @@ export interface Invitation {
   role: Role
 }
 
+export interface Plan {
+  id: string
+  name: string
+  description: string
+  prices: { month?: number; year?: number }
+  /** Clé absente = illimité. */
+  limits: { members?: number; active_shipments?: number }
+  features: string[]
+}
+
+export type BillingInterval = 'month' | 'year'
+
+export interface PaymentRequest {
+  id: string
+  plan_id: string
+  billing_interval: BillingInterval
+  amount: number
+  status: 'awaiting_link' | 'link_sent' | 'reference_submitted'
+  contact_name: string | null
+  contact_phone: string | null
+  payment_link: string | null
+  transaction_ref: string | null
+  rejection_reason: string | null
+  created_at: string
+}
+
+export interface Billing {
+  plans: Plan[]
+  /** Offre en vigueur (« decouverte » quand l'essai ou l'abonnement est terminé). */
+  plan_id: string
+  state: 'free' | 'trial' | 'active'
+  trial_ends_at: string | null
+  current_period_end: string | null
+  had_paid_plan: boolean
+  usage: { members: number; active_shipments: number }
+  request: PaymentRequest | null
+  support_whatsapp: string
+  is_platform_admin: boolean
+}
+
 export interface Supplier {
   id: string
   name: string

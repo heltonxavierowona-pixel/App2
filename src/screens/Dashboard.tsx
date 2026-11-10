@@ -1,5 +1,6 @@
 import { ShipmentRow } from '../components/ShipmentRow.tsx'
 import { Empty, Icon, PageHeader } from '../components/ui.tsx'
+import { daysLeft, overLimit, stateSentence } from '../lib/billing.ts'
 import { DOC_LABEL } from '../lib/constants.ts'
 import { lateDays, missingDocs, monthMargin } from '../lib/costs.ts'
 import { fcfa, shortDate, todayISO } from '../lib/format.ts'
@@ -8,7 +9,22 @@ import { useStore } from '../lib/store.tsx'
 const monthName = new Intl.DateTimeFormat('fr-FR', { month: 'long' })
 
 export default function Dashboard() {
-  const { shipments, orders } = useStore()
+  const { shipments, orders, billing } = useStore()
+  const left = daysLeft(billing)
+  // On ne dérange que lorsqu'il y a quelque chose à décider : fin proche, offre gratuite ou limite dépassée.
+  const banner =
+    billing.state === 'free' || overLimit(billing) || left <= 5 ? (
+      <a className={`plan-banner${overLimit(billing) ? ' plan-banner-warn' : ''}`} href="#/abonnement">
+        <span>
+          {overLimit(billing)
+            ? 'Vous dépassez les limites de votre offre : les nouvelles créations sont bloquées.'
+            : billing.state === 'free'
+              ? stateSentence(billing)
+              : `${stateSentence(billing)} Plus que ${left} jour${left > 1 ? 's' : ''}.`}
+        </span>
+        <strong>Voir les offres</strong>
+      </a>
+    ) : null
   const today = todayISO()
 
   const active = shipments.filter((s) => s.status !== 'delivered')
@@ -73,6 +89,7 @@ export default function Dashboard() {
           <span className="stat-note">au port, à livrer</span>
         </a>
       </section>
+      {banner}
 
       {late.length > 0 && (
         <section className="section">

@@ -32,6 +32,8 @@ const Shipments = lazyScreen(() => import('./screens/Shipments.tsx'))
 const Documents = lazyScreen(() => import('./screens/Documents.tsx'))
 const Costs = lazyScreen(() => import('./screens/Costs.tsx'))
 const Team = lazyScreen(() => import('./screens/Team.tsx'))
+const Subscription = lazyScreen(() => import('./screens/Subscription.tsx'))
+const Platform = lazyScreen(() => import('./screens/Platform.tsx'))
 
 const Splash = ({ text = 'Chargement…' }: { text?: string }) => (
   <div className="splash" role="status">
@@ -127,10 +129,20 @@ function Router() {
   else if (section === 'documents') screen = <Documents rest={rest} />
   else if (section === 'couts') screen = <Costs rest={rest} />
   else if (section === 'equipe') screen = <Team />
+  else if (section === 'abonnement') screen = <Subscription />
+  else if (section === 'plateforme') screen = <Platform />
   else screen = <Dashboard />
 
   return (
-    <Shell section={['commandes', 'expeditions', 'documents', 'couts', 'equipe'].includes(section) ? section : ''}>
+    <Shell
+      section={
+        ['commandes', 'expeditions', 'documents', 'couts'].includes(section)
+          ? section
+          : ['equipe', 'abonnement', 'plateforme'].includes(section)
+            ? 'equipe'
+            : ''
+      }
+    >
       <ErrorBoundary key={route.path}>
         <Suspense fallback={<Splash />}>{screen}</Suspense>
       </ErrorBoundary>

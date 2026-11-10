@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
 import { Field, Icon, Notice, PageHeader } from '../components/ui.tsx'
+import { planOf, stateSentence } from '../lib/billing.ts'
 import { fullDate } from '../lib/format.ts'
 import { useStore } from '../lib/store.tsx'
 import { explain, supabase } from '../lib/supabase.ts'
@@ -23,7 +24,7 @@ interface Pending {
 const ROLE_LABEL: Record<Role, string> = { admin: 'Administrateur', member: 'Membre' }
 
 export default function Team() {
-  const { org, role, session } = useStore()
+  const { org, role, session, billing, reload } = useStore()
   const isAdmin = role === 'admin'
   const [members, setMembers] = useState<Member[] | null>(null)
   const [pending, setPending] = useState<Pending[]>([])
@@ -42,7 +43,8 @@ export default function Team() {
     if (m.error || p.error) return setError(explain(m.error ?? p.error))
     setMembers(m.data as Member[])
     setPending(p.data as Pending[])
-  }, [])
+    void reload(['billing'])
+  }, [reload])
 
   useEffect(() => {
     void load()
@@ -94,6 +96,25 @@ export default function Team() {
           {org.name} · {org.country}
         </p>
       </PageHeader>
+
+      <div className="link-cards team-links">
+        <a className="row" href="#/abonnement">
+          <div className="row-main">
+            <strong>Abonnement · offre {planOf(billing)?.name}</strong>
+            <p className="row-sub">{stateSentence(billing)}</p>
+          </div>
+          <Icon name="chevron" size={18} />
+        </a>
+        {billing.is_platform_admin && (
+          <a className="row" href="#/plateforme">
+            <div className="row-main">
+              <strong>Plateforme</strong>
+              <p className="row-sub">Liens de paiement et paiements à valider</p>
+            </div>
+            <Icon name="chevron" size={18} />
+          </a>
+        )}
+      </div>
 
       <section className="panel">
         <h2>Membres</h2>

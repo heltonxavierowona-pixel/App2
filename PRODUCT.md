@@ -12,9 +12,12 @@ est en retard, quelle pièce manque au dossier, et ce que le lot coûte et rappo
 **Ton.** Français professionnel et direct, vocabulaire du métier (connaissement, dédouanement,
 incoterm, frais d'approche). Montants en FCFA, sans décimales.
 
-**Hors périmètre V1.** Facturation client, stocks, paiements, suivi automatique des navires,
+**Hors périmètre V1.** Facturation des clients de l'entreprise, stocks, suivi automatique des navires,
 mode hors ligne.
 
 **Équipe.** Un administrateur invite ses collègues par e-mail (écran Équipe, icône en haut à
 droite). Le collègue crée son compte avec cette adresse et rejoint l'entreprise à sa première
 connexion. Un compte appartient à une seule entreprise.
+
+**Offres.** Découverte (gratuite), PME et Transitaire, payées par lien de paiement Mobile Money
+puis validées à la main par le propriétaire de la plateforme. Voir le README.

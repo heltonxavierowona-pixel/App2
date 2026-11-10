@@ -3,16 +3,18 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import type { ReactNode } from 'react'
 import { EUR_PEG } from './constants.ts'
 import { explain, supabase } from './supabase.ts'
-import type { Order, Organization, Rates, Role, Shipment, Supplier } from './types.ts'
+import type { Billing, Order, Organization, Rates, Role, Shipment, Supplier } from './types.ts'
 
-type Part = 'suppliers' | 'orders' | 'shipments' | 'rates'
-const ALL: Part[] = ['suppliers', 'orders', 'shipments', 'rates']
+type Part = 'suppliers' | 'orders' | 'shipments' | 'rates' | 'billing'
+const ALL: Part[] = ['suppliers', 'orders', 'shipments', 'rates', 'billing']
 
 interface Data {
   suppliers: Supplier[]
   orders: Order[]
   shipments: Shipment[]
   rates: Rates
+  /** Offre, limites et paiement en cours. */
+  billing: Billing
 }
 
 interface Store extends Data {
@@ -39,6 +41,18 @@ const EMPTY: Data = {
   orders: [],
   shipments: [],
   rates: { EUR: EUR_PEG, USD: 600, CNY: 83 },
+  billing: {
+    plans: [],
+    plan_id: 'decouverte',
+    state: 'free',
+    trial_ends_at: null,
+    current_period_end: null,
+    had_paid_plan: false,
+    usage: { members: 1, active_shipments: 0 },
+    request: null,
+    support_whatsapp: '',
+    is_platform_admin: false,
+  },
 }
 
 async function fetchPart(part: Part): Promise<Partial<Data>> {
@@ -63,6 +77,11 @@ async function fetchPart(part: Part): Promise<Partial<Data>> {
       .order('created_at', { ascending: false })
     if (error) throw error
     return { shipments: data as Shipment[] }
+  }
+  if (part === 'billing') {
+    const { data, error } = await supabase.rpc('billing_overview')
+    if (error) throw error
+    return { billing: data as Billing }
   }
   const { data, error } = await supabase.from('exchange_rates').select('currency, rate')
   if (error) throw error

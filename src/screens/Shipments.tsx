@@ -134,7 +134,7 @@ function ShipmentDetail({ shipment: s }: { shipment: Shipment }) {
       .update({ status: next, ...(field ? { [field]: date } : {}) })
       .eq('id', s.id)
     if (err) setError(explain(err))
-    else await reload(['shipments'])
+    else await reload(['shipments', 'billing'])
     setBusy(false)
   }
 
@@ -376,7 +376,7 @@ function ShipmentForm({ shipment, orderId }: { shipment?: Shipment; orderId?: st
           .in('id', dropped.map((si) => si.id))
         if (delErr) throw delErr
       }
-      await reload(['shipments'])
+      await reload(['shipments', 'billing'])
       navigate(`/expeditions/${id}`)
     } catch (err) {
       setError(explain(err))
@@ -396,7 +396,7 @@ function ShipmentForm({ shipment, orderId }: { shipment?: Shipment; orderId?: st
       setBusy(false)
       return
     }
-    await reload(['shipments'])
+    await reload(['shipments', 'billing'])
     navigate('/expeditions')
   }
 
