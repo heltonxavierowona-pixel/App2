@@ -20,7 +20,11 @@ export function Auth() {
       const { error: err } = await supabase.auth.signInWithPassword(creds)
       if (err) setError(explain(err))
     } else {
-      const { data, error: err } = await supabase.auth.signUp(creds)
+      // Le lien de confirmation doit ramener sur cette application, pas sur l'URL par défaut du projet.
+      const { data, error: err } = await supabase.auth.signUp({
+        ...creds,
+        options: { emailRedirectTo: window.location.origin },
+      })
       if (err) setError(explain(err))
       else if (!data.session) setSent(true)
     }

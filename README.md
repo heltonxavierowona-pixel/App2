@@ -34,8 +34,9 @@ rapport au jour du chargement.
 
 1. Créer un projet Supabase et appliquer les quatre fichiers de `supabase/migrations` dans l'ordre.
 2. Renseigner `VITE_SUPABASE_URL` et `VITE_SUPABASE_ANON_KEY` dans Vercel.
-3. Dans Supabase > Authentication, régler l'URL du site sur l'adresse Vercel et configurer
-   l'envoi des e-mails de confirmation (ou désactiver la confirmation pour une démo).
+3. Dans Supabase > Authentication > URL Configuration, mettre l'adresse Vercel dans « Site URL »
+   et dans « Redirect URLs » : sans cela, le lien de confirmation renvoie vers `localhost:3000`.
+   Configurer aussi l'envoi des e-mails (ou désactiver la confirmation pour une démo).
 
 ## Tests
 
