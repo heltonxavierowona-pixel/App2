@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>NUMERA GROUPES — Solutions numériques sur mesure</title>
+  <meta name="description" content="NUMERA GROUPES conçoit des sites web, des applications et des solutions digitales sur mesure. Découvrez nos services et nos réalisations.">
+  <meta property="og:title" content="NUMERA GROUPES — Solutions numériques sur mesure">
+  <meta property="og:description" content="Sites web, applications et solutions digitales sur mesure. Découvrez nos réalisations.">
+  <meta property="og:type" content="website">
+  <meta name="theme-color" content="#0d1220">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip" href="#contenu">Aller au contenu</a>
+
+  <header class="header" id="header">
+    <div class="wrap header__in">
+      <a class="logo" href="#accueil" aria-label="NUMERA GROUPES — accueil">
+        <svg class="logo__mark" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="currentColor"/><path d="M9 23V9l14 14V9" fill="none" stroke="var(--accent)" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span>NUMERA <b>GROUPES</b></span>
+      </a>
+      <button class="burger" id="burger" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="nav"><span></span><span></span></button>
+      <nav class="nav" id="nav" aria-label="Navigation principale">
+        <a href="#apropos">À propos</a>
+        <a href="#services">Services</a>
+        <a href="#projets">Projets</a>
+        <a href="#methode">Méthode</a>
+        <a class="btn btn--sm" href="#contact">Nous contacter</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="contenu">
+    <!-- ACCUEIL -->
+    <section class="hero" id="accueil">
+      <div class="wrap hero__in">
+        <p class="eyebrow eyebrow--light">Entreprise de solutions numériques</p>
+        <h1 id="hero-slogan">Nous donnons forme à vos idées numériques.</h1>
+        <p class="hero__lead" id="hero-accroche"></p>
+        <div class="hero__cta">
+          <a class="btn" href="#projets">Voir nos projets</a>
+          <a class="btn btn--ghost" href="#contact">Parler de votre projet</a>
+        </div>
+        <dl class="stats" id="stats"></dl>
+      </div>
+    </section>
+
+    <!-- À PROPOS -->
+    <section class="section" id="apropos">
+      <div class="wrap split">
+        <div>
+          <p class="eyebrow">À propos</p>
+          <h2>Un partenaire numérique à votre écoute</h2>
+        </div>
+        <div class="prose reveal" id="apropos-texte"></div>
+      </div>
+    </section>
+
+    <!-- SERVICES -->
+    <section class="section section--tint" id="services">
+      <div class="wrap">
+        <p class="eyebrow">Services</p>
+        <h2>Ce que nous faisons</h2>
+        <div class="cards" id="services-liste"></div>
+      </div>
+    </section>
+
+    <!-- PROJETS -->
+    <section class="section" id="projets">
+      <div class="wrap">
+        <div class="section__head">
+          <div>
+            <p class="eyebrow">Porte-folio</p>
+            <h2>Nos projets</h2>
+            <p class="muted">Les réalisations livrées et celles sur lesquelles nous travaillons en ce moment.</p>
+          </div>
+        </div>
+        <div class="filters">
+          <div class="chips" id="filtre-statut" role="group" aria-label="Filtrer par statut"></div>
+          <div class="chips chips--soft" id="filtre-categorie" role="group" aria-label="Filtrer par catégorie"></div>
+        </div>
+        <div class="projects" id="projets-liste" aria-live="polite"></div>
+        <p class="empty" id="projets-vide" hidden>Aucun projet ne correspond à ces filtres.</p>
+      </div>
+    </section>
+
+    <!-- MÉTHODE -->
+    <section class="section section--dark" id="methode">
+      <div class="wrap">
+        <p class="eyebrow eyebrow--light">Méthode</p>
+        <h2>Comment nous travaillons</h2>
+        <ol class="steps" id="methode-liste"></ol>
+      </div>
+    </section>
+
+    <!-- CONTACT -->
+    <section class="section" id="contact">
+      <div class="wrap split">
+        <div>
+          <p class="eyebrow">Contact</p>
+          <h2>Un projet en tête&nbsp;? Parlons-en.</h2>
+          <p class="muted">Décrivez-nous votre besoin, nous vous répondons rapidement.</p>
+          <ul class="contact-list" id="contact-infos"></ul>
+        </div>
+        <form class="form reveal" id="contact-form" novalidate>
+          <div class="field">
+            <label for="f-nom">Nom</label>
+            <input id="f-nom" name="nom" type="text" autocomplete="name" required>
+          </div>
+          <div class="field">
+            <label for="f-email">E-mail</label>
+            <input id="f-email" name="email" type="email" autocomplete="email" required>
+          </div>
+          <div class="field">
+            <label for="f-type">Type de projet</label>
+            <select id="f-type" name="type"></select>
+          </div>
+          <div class="field">
+            <label for="f-message">Votre message</label>
+            <textarea id="f-message" name="message" rows="5" required></textarea>
+          </div>
+          <p class="form__error" id="form-error" role="alert" hidden>Merci de remplir votre nom, un e-mail valide et votre message.</p>
+          <button class="btn" type="submit">Envoyer le message</button>
+          <p class="form__note">L'envoi ouvre votre messagerie avec le message prérempli.</p>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap footer__in">
+      <div>
+        <a class="logo logo--light" href="#accueil">
+          <svg class="logo__mark" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="currentColor"/><path d="M9 23V9l14 14V9" fill="none" stroke="var(--accent)" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span>NUMERA <b>GROUPES</b></span>
+        </a>
+        <p class="footer__tag" id="footer-slogan"></p>
+      </div>
+      <nav class="footer__nav" aria-label="Pied de page">
+        <a href="#apropos">À propos</a>
+        <a href="#services">Services</a>
+        <a href="#projets">Projets</a>
+        <a href="#contact">Contact</a>
+      </nav>
+      <div class="footer__social" id="footer-reseaux"></div>
+    </div>
+    <div class="wrap footer__legal">© <span id="annee"></span> NUMERA GROUPES. Tous droits réservés.</div>
+  </footer>
+
+  <!-- FENÊTRE DÉTAIL PROJET -->
+  <dialog class="modal" id="modal" aria-labelledby="modal-titre">
+    <button class="modal__close" id="modal-close" aria-label="Fermer">×</button>
+    <div id="modal-contenu"></div>
+  </dialog>
+
+  <script src="data.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
