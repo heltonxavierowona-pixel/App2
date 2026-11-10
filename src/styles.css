@@ -1504,6 +1504,15 @@ a.topbar-btn {
 /* ---------- Abonnement ---------- */
 .team-links {
   margin-top: 0;
+  grid-template-columns: minmax(0, 1fr);
+}
+.team-links .row {
+  min-width: 0;
+}
+@media (min-width: 620px) {
+  .team-links:has(.row + .row) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 .page-header + .team-links {
   position: relative;
