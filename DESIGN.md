@@ -2,7 +2,10 @@
 
 Surface de travail (mode « operate ») : la clarté passe avant l'effet.
 
-- **Thème.** Clair, fort contraste : l'application se lit dehors, en plein soleil.
+- **Thème.** Clair par défaut, à fort contraste : l'application se lit dehors, en plein soleil.
+  Un mode sombre suit le réglage du téléphone ; le bouton lune/soleil de la barre du haut permet
+  de le forcer, et le choix est mémorisé sur l'appareil. Seuls les jetons sémantiques
+  (`--accent`, `--progress`, `--tint-*`, `--field-bg`, fonds et états) changent entre les deux.
 - **Marque.** Le logo NUMERA (`public/numera-mark.svg`, repris de numera-agentic) figure dans
   la barre du haut, sur l'écran de connexion et comme icône du site.
 - **Palette.** Celle du logo : bleu marine pour la structure (`--navy-*`), vert pour l'action

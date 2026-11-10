@@ -6,6 +6,14 @@
     <meta name="theme-color" content="#051E36" />
     <meta name="description" content="NUMERA Import-Export : suivi des commandes, expéditions, documents et coûts de revient." />
     <link rel="icon" type="image/svg+xml" href="/numera-mark.svg" />
+    <script>
+      // Applique le thème avant le premier affichage, pour éviter un éclair blanc.
+      try {
+        var t = localStorage.getItem('numera-theme')
+        if (t !== 'light' && t !== 'dark') t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+        document.documentElement.dataset.theme = t
+      } catch (e) {}
+    </script>
     <title>NUMERA Import-Export</title>
   </head>
   <body>

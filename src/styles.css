@@ -27,6 +27,13 @@
   --green-600: #007a51;
   --green-700: #00643f;
   --green-100: #d6f5e5;
+  /* Jetons sémantiques : ce sont eux qui changent en mode sombre. */
+  --accent: var(--navy-700);
+  --nav-active: var(--navy-900);
+  --tint-bg: var(--navy-100);
+  --tint-fg: var(--navy-900);
+  --progress: var(--green-600);
+  --field-bg: #ffffff;
   --ok: #006b45;
   --ok-bg: #d6f5e5;
   --warn: #8a5200;
@@ -41,6 +48,7 @@
   --nav-h: 62px;
   --top-h: 56px;
 
+  color-scheme: light;
   font-family: 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   font-size: 16px;
   line-height: 1.5;
@@ -53,6 +61,31 @@
   scrollbar-color: var(--mist-300) transparent;
 }
 
+/* Mode sombre : posé par le script de index.html (préférence enregistrée ou réglage du téléphone). */
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --mist-0: #0f2439;
+  --mist-50: #071625;
+  --mist-100: #183049;
+  --mist-200: #25415f;
+  --mist-300: #5f7b98;
+  --ink: #e9f0f8;
+  --ink-2: #a5b8cc;
+  --accent: #8fc3f5;
+  --nav-active: var(--navy-600);
+  --tint-bg: #17385c;
+  --tint-fg: #d3e6fa;
+  --progress: #1fca84;
+  --field-bg: #0a1b2d;
+  --ok: #6fe3ab;
+  --ok-bg: #0e3a2a;
+  --warn: #ffc973;
+  --warn-bg: #40300f;
+  --danger: #ffa198;
+  --danger-bg: #4b1d1a;
+  --green-100: #0e3a2a;
+  --shadow: 0 1px 2px rgb(0 0 0 / 30%), 0 10px 24px -8px rgb(0 0 0 / 50%);
+}
 *,
 *::before,
 *::after {
@@ -92,7 +125,7 @@ legend {
   line-height: 1.3;
 }
 a {
-  color: var(--navy-700);
+  color: var(--accent);
   text-underline-offset: 0.18em;
   text-decoration-thickness: 1px;
 }
@@ -193,6 +226,11 @@ small,
 .topbar-btn span {
   display: none;
 }
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  flex: none;
+}
 .topbar-btn:hover {
   background: rgb(255 255 255 / 10%);
 }
@@ -220,7 +258,7 @@ small,
   text-decoration: none;
 }
 .nav-item[aria-current='page'] {
-  color: var(--navy-700);
+  color: var(--accent);
   font-weight: 700;
 }
 .nav-item[aria-current='page']::before {
@@ -280,7 +318,7 @@ small,
     background: var(--mist-100);
   }
   .nav-item[aria-current='page'] {
-    background: var(--navy-900);
+    background: var(--nav-active);
     color: var(--mist-50);
   }
   .nav-item[aria-current='page']::before {
@@ -401,7 +439,7 @@ small,
     transform 120ms var(--ease);
 }
 .btn:hover {
-  border-color: var(--navy-600);
+  border-color: var(--accent);
   background: var(--mist-50);
 }
 .btn:active {
@@ -452,7 +490,7 @@ small,
   padding: 0;
   border: 0;
   background: none;
-  color: var(--navy-700);
+  color: var(--accent);
   font: inherit;
   font-weight: 600;
   text-decoration: underline;
@@ -593,8 +631,8 @@ small,
 }
 .badge-shipped,
 .badge-at_sea {
-  background: var(--navy-100);
-  color: var(--navy-900);
+  background: var(--tint-bg);
+  color: var(--tint-fg);
 }
 .badge-at_port,
 .badge-cleared {
@@ -622,8 +660,8 @@ small,
 
 /* ---------- La ligne maritime (signature) ---------- */
 .route {
-  --done: var(--green-600);
-  --now: var(--navy-700);
+  --done: var(--progress);
+  --now: var(--accent);
   display: grid;
   grid-template-columns: repeat(6, 1fr);
   max-width: 340px;
@@ -682,8 +720,8 @@ small,
 }
 
 .route-detail {
-  --done: var(--green-600);
-  --now: var(--navy-700);
+  --done: var(--progress);
+  --now: var(--accent);
   list-style: none;
 }
 .route-detail li {
@@ -845,7 +883,7 @@ small,
   font-weight: 800;
   line-height: 1.1;
   letter-spacing: -0.03em;
-  color: var(--navy-700);
+  color: var(--accent);
 }
 .stat-note {
   font-size: 0.8125rem;
@@ -855,12 +893,12 @@ small,
   background: var(--danger-bg);
 }
 .stat-danger:hover {
-  background: #f8cdc8;
+  background: var(--danger-bg);
 }
 .stat-danger .stat-value,
 .stat-danger .stat-label,
 .stat-danger .stat-note {
-  color: #8c1a14;
+  color: var(--danger);
 }
 
 /* ---------- Filtres ---------- */
@@ -895,8 +933,8 @@ small,
   color: var(--ink-2);
 }
 .filter[aria-current] {
-  border-color: var(--navy-900);
-  background: var(--navy-900);
+  border-color: var(--nav-active);
+  background: var(--nav-active);
   color: var(--mist-50);
 }
 .filter[aria-current] .filter-count {
@@ -952,7 +990,7 @@ textarea {
   padding: 9px 12px;
   border: 1px solid var(--mist-300);
   border-radius: var(--radius-sm);
-  background: #fff;
+  background: var(--field-bg);
   color: var(--ink);
   font: inherit;
   transition: border-color 160ms var(--ease);
@@ -967,14 +1005,14 @@ input[type='checkbox'] {
 input:hover,
 select:hover,
 textarea:hover {
-  border-color: var(--navy-600);
+  border-color: var(--accent);
 }
 input:focus-visible,
 select:focus-visible,
 textarea:focus-visible {
-  outline: 2px solid var(--navy-600);
+  outline: 2px solid var(--accent);
   outline-offset: 0;
-  border-color: var(--navy-600);
+  border-color: var(--accent);
 }
 input[readonly],
 select:disabled {
@@ -982,7 +1020,7 @@ select:disabled {
   color: var(--ink-2);
 }
 ::placeholder {
-  color: #6b7a80;
+  color: var(--ink-2);
 }
 .grid-2,
 .grid-3,
@@ -1148,15 +1186,15 @@ select:disabled {
 }
 .notice-error {
   background: var(--danger-bg);
-  color: #7c1711;
+  color: var(--danger);
 }
 .notice-ok {
   background: var(--ok-bg);
-  color: #0f4d2b;
+  color: var(--ok);
 }
 .notice-info {
   background: var(--warn-bg);
-  color: #5f3900;
+  color: var(--warn);
 }
 .notice a {
   color: inherit;
@@ -1196,7 +1234,7 @@ select:disabled {
   width: 28px;
   height: 28px;
   border: 3px solid var(--mist-200);
-  border-top-color: var(--navy-700);
+  border-top-color: var(--accent);
   border-radius: 50%;
   animation: spin 800ms linear infinite;
 }
@@ -1223,11 +1261,11 @@ select:disabled {
   border-radius: 3px;
 }
 .pip-uploaded {
-  border-color: var(--navy-700);
+  border-color: var(--accent);
 }
 .pip-validated {
-  border-color: var(--green-600);
-  background: var(--green-600);
+  border-color: var(--progress);
+  background: var(--progress);
 }
 .docs {
   list-style: none;
@@ -1264,8 +1302,8 @@ select:disabled {
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: var(--navy-100);
-  color: var(--navy-900);
+  background: var(--tint-bg);
+  color: var(--tint-fg);
 }
 .doc-missing .doc-state {
   background: var(--danger-bg);

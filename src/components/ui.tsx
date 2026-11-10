@@ -18,6 +18,8 @@ const ICONS = {
   logout: 'M10 4H5v16h5M14 8l4 4-4 4M18 12H9',
   trash: 'M5 7h14M10 7V4h4v3M7 7l1 13h8l1-13',
   edit: 'M4 20h4L19 9l-4-4L4 16zM13 7l4 4',
+  moon: 'M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.500 10.500z',
+  sun: 'M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM12 2v2M12 20v2M2 12h2M20 12h2M4.900 4.900l1.400 1.400M17.700 17.700l1.400 1.400M4.900 19.100l1.400-1.400M17.700 6.300l1.400-1.400',
 } as const
 
 export type IconName = keyof typeof ICONS
