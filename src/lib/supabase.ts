@@ -18,7 +18,9 @@ export function explain(error: { message: string; code?: string } | Error | unkn
   const msg = e?.message ?? ''
   if (/failed to fetch|networkerror|load failed/i.test(msg))
     return 'Connexion impossible. Vérifiez votre réseau puis réessayez.'
-  if (e?.code === '23505') return 'Cette référence existe déjà. Choisissez-en une autre.'
+  if (e?.code === '23505')
+    return /entreprise/.test(msg) ? msg : 'Cette référence existe déjà. Choisissez-en une autre.'
+  if (e?.code === '42501' && /administrateur/.test(msg)) return msg
   if (e?.code === '23503')
     return 'Cet élément est utilisé ailleurs (une expédition, par exemple) et ne peut pas être supprimé.'
   if (/invalid login credentials/i.test(msg)) return 'E-mail ou mot de passe incorrect.'
@@ -31,6 +33,7 @@ export function explain(error: { message: string; code?: string } | Error | unkn
   if (/expired|invalid.*(token|link)/i.test(msg)) return 'Ce lien a expiré. Demandez-en un nouveau.'
   if (/error sending .*e-?mail/i.test(msg))
     return 'L’e-mail n’a pas pu être envoyé. Réessayez dans quelques minutes.'
+  if (e?.code === 'P0002') return msg
   if (/rate limit/i.test(msg)) return 'Trop de tentatives. Patientez quelques minutes puis réessayez.'
   return msg || 'Une erreur est survenue. Réessayez.'
 }

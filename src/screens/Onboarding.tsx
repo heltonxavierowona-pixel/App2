@@ -3,8 +3,18 @@ import type { FormEvent } from 'react'
 import { Field, Notice } from '../components/ui.tsx'
 import { COUNTRIES } from '../lib/constants.ts'
 import { explain, supabase } from '../lib/supabase.ts'
+import type { Invitation } from '../lib/types.ts'
 
-export function Onboarding({ email, onDone }: { email: string; onDone: () => Promise<void> }) {
+export function Onboarding({
+  email,
+  invitations,
+  onDone,
+}: {
+  email: string
+  invitations: Invitation[]
+  onDone: () => Promise<void>
+}) {
+  const [creating, setCreating] = useState(invitations.length === 0)
   const [name, setName] = useState('')
   const [country, setCountry] = useState('Côte d’Ivoire')
   const [demo, setDemo] = useState(true)
@@ -27,6 +37,63 @@ export function Onboarding({ email, onDone }: { email: string; onDone: () => Pro
       setBusy(false)
     } else await onDone()
   }
+
+  async function accept(id: string) {
+    setBusy(true)
+    setError('')
+    const { error: err } = await supabase.rpc('accept_invitation', { p_id: id })
+    if (err) {
+      setError(explain(err))
+      setBusy(false)
+    } else await onDone()
+  }
+
+  const signOut = (
+    <p className="auth-switch">
+      Connecté en tant que {email}.{' '}
+      <button type="button" className="link" onClick={() => supabase.auth.signOut()}>
+        Se déconnecter
+      </button>
+    </p>
+  )
+
+  if (!creating)
+    return (
+      <div className="auth">
+        <div className="auth-intro hero">
+          <p className="auth-brand">
+            <img src="/numera-mark.svg" alt="" width="52" height="52" />
+            <span>NUMERA</span>
+          </p>
+          <h1>
+            Bienvenue. Votre équipe <em>vous attend.</em>
+          </h1>
+          <p>Vous partagerez les commandes, expéditions, documents et coûts de l’entreprise.</p>
+        </div>
+        <div className="auth-form">
+          <h2>Invitation{invitations.length > 1 ? 's' : ''}</h2>
+          {invitations.map((inv) => (
+            <div className="invite" key={inv.id}>
+              <p>
+                <strong>{inv.organization_name}</strong>
+                <span>{inv.role === 'admin' ? 'En tant qu’administrateur' : 'En tant que membre'}</span>
+              </p>
+              <button className="btn btn-primary" onClick={() => accept(inv.id)} disabled={busy}>
+                Rejoindre
+              </button>
+            </div>
+          ))}
+          {error && <Notice>{error}</Notice>}
+          <p className="auth-switch">
+            Ce n’est pas votre entreprise ?{' '}
+            <button type="button" className="link" onClick={() => setCreating(true)}>
+              Créer la mienne
+            </button>
+          </p>
+          {signOut}
+        </div>
+      </div>
+    )
 
   return (
     <div className="auth">
@@ -66,12 +133,7 @@ export function Onboarding({ email, onDone }: { email: string; onDone: () => Pro
         <button className="btn btn-primary btn-block" disabled={busy}>
           {busy ? 'Création…' : 'Commencer'}
         </button>
-        <p className="auth-switch">
-          Connecté en tant que {email}.{' '}
-          <button type="button" className="link" onClick={() => supabase.auth.signOut()}>
-            Se déconnecter
-          </button>
-        </p>
+        {signOut}
       </form>
     </div>
   )

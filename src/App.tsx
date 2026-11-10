@@ -6,7 +6,7 @@ import { Shell } from './components/Shell.tsx'
 import { useRoute } from './lib/router.ts'
 import { StoreProvider } from './lib/store.tsx'
 import { explain, isConfigured, openedFromRecoveryLink, supabase } from './lib/supabase.ts'
-import type { Organization } from './lib/types.ts'
+import type { Invitation, Organization, Role } from './lib/types.ts'
 import { Auth } from './screens/Auth.tsx'
 import { NewPassword } from './screens/NewPassword.tsx'
 import { Onboarding } from './screens/Onboarding.tsx'
@@ -31,6 +31,7 @@ const Orders = lazyScreen(() => import('./screens/Orders.tsx'))
 const Shipments = lazyScreen(() => import('./screens/Shipments.tsx'))
 const Documents = lazyScreen(() => import('./screens/Documents.tsx'))
 const Costs = lazyScreen(() => import('./screens/Costs.tsx'))
+const Team = lazyScreen(() => import('./screens/Team.tsx'))
 
 const Splash = ({ text = 'Chargement…' }: { text?: string }) => (
   <div className="splash" role="status">
@@ -42,6 +43,8 @@ const Splash = ({ text = 'Chargement…' }: { text?: string }) => (
 export function App() {
   const [session, setSession] = useState<Session | null | undefined>(undefined)
   const [org, setOrg] = useState<Organization | null | undefined>(undefined)
+  const [role, setRole] = useState<Role>('member')
+  const [invitations, setInvitations] = useState<Invitation[]>([])
   const [error, setError] = useState('')
   const [recovery, setRecovery] = useState(openedFromRecoveryLink)
 
@@ -59,11 +62,20 @@ export function App() {
     setError('')
     const { data, error: e } = await supabase
       .from('organization_members')
-      .select('organizations(id, name, country, currency)')
+      .select('role, organizations(id, name, country, currency)')
+      // Un membre voit toutes les adhésions de son entreprise : on ne garde que la sienne.
+      .eq('user_id', userId ?? '')
       .limit(1)
     if (e) return setError(explain(e))
-    setOrg((data[0]?.organizations as unknown as Organization | undefined) ?? null)
-  }, [])
+    const found = (data[0]?.organizations as unknown as Organization | undefined) ?? null
+    if (!found) {
+      // Pas encore d'entreprise : un collègue l'a peut-être invité.
+      const { data: pending, error: invError } = await supabase.rpc('my_invitations')
+      if (invError) return setError(explain(invError))
+      setInvitations(pending as Invitation[])
+    } else setRole(data[0].role as Role)
+    setOrg(found)
+  }, [userId])
 
   useEffect(() => {
     setOrg(undefined)
@@ -92,10 +104,10 @@ export function App() {
       </div>
     )
   if (org === undefined) return <Splash />
-  if (!org) return <Onboarding email={session.user.email ?? ''} onDone={loadOrg} />
+  if (!org) return <Onboarding email={session.user.email ?? ''} invitations={invitations} onDone={loadOrg} />
 
   return (
-    <StoreProvider session={session} org={org}>
+    <StoreProvider session={session} org={org} role={role}>
       <Router />
     </StoreProvider>
   )
@@ -114,10 +126,11 @@ function Router() {
   else if (section === 'expeditions') screen = <Shipments rest={rest} query={route.query} />
   else if (section === 'documents') screen = <Documents rest={rest} />
   else if (section === 'couts') screen = <Costs rest={rest} />
+  else if (section === 'equipe') screen = <Team />
   else screen = <Dashboard />
 
   return (
-    <Shell section={['commandes', 'expeditions', 'documents', 'couts'].includes(section) ? section : ''}>
+    <Shell section={['commandes', 'expeditions', 'documents', 'couts', 'equipe'].includes(section) ? section : ''}>
       <ErrorBoundary key={route.path}>
         <Suspense fallback={<Splash />}>{screen}</Suspense>
       </ErrorBoundary>

@@ -3,7 +3,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import type { ReactNode } from 'react'
 import { EUR_PEG } from './constants.ts'
 import { explain, supabase } from './supabase.ts'
-import type { Order, Organization, Rates, Shipment, Supplier } from './types.ts'
+import type { Order, Organization, Rates, Role, Shipment, Supplier } from './types.ts'
 
 type Part = 'suppliers' | 'orders' | 'shipments' | 'rates'
 const ALL: Part[] = ['suppliers', 'orders', 'shipments', 'rates']
@@ -18,6 +18,8 @@ interface Data {
 interface Store extends Data {
   session: Session
   org: Organization
+  /** Rôle de l'utilisateur dans l'entreprise : seul l'administrateur gère l'équipe. */
+  role: Role
   /** Recharge les données indiquées (toutes par défaut) après une modification. */
   reload: (parts?: Part[]) => Promise<void>
   supplierOf: (order: Order | undefined) => Supplier | undefined
@@ -72,10 +74,12 @@ async function fetchPart(part: Part): Promise<Partial<Data>> {
 export function StoreProvider({
   session,
   org,
+  role,
   children,
 }: {
   session: Session
   org: Organization
+  role: Role
   children: ReactNode
 }) {
   const [data, setData] = useState<Data>(EMPTY)
@@ -108,11 +112,12 @@ export function StoreProvider({
       ...data,
       session,
       org,
+      role,
       reload,
       supplierOf: (order) => data.suppliers.find((s) => s.id === order?.supplier_id),
       orderOf: (shipment) => data.orders.find((o) => o.id === shipment.purchase_order_id),
     }),
-    [data, session, org, reload],
+    [data, session, org, role, reload],
   )
 
   if (state === 'loading' && !loaded.current)

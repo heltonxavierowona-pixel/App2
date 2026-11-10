@@ -1439,6 +1439,68 @@ strong.fee-fcfa {
   }
 }
 
+/* ---------- Équipe ---------- */
+.panel.form > * + * {
+  margin-top: 14px;
+}
+.people li {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 0;
+  border-top: 1px solid var(--mist-100);
+}
+.people li:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+.people li > div {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.people strong {
+  overflow-wrap: anywhere;
+}
+.people span {
+  font-size: 0.875rem;
+  color: var(--ink-2);
+}
+.btn-icon-plain:hover {
+  background: var(--mist-100);
+  color: var(--accent);
+}
+.team-note,
+.panel + .notice {
+  margin-top: 14px;
+}
+.topbar-btn[aria-current='page'] {
+  background: rgb(255 255 255 / 14%);
+}
+a.topbar-btn {
+  text-decoration: none;
+}
+.invite {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid var(--mist-200);
+  border-radius: var(--radius);
+  background: var(--mist-50);
+}
+.invite p {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.invite span {
+  font-size: 0.875rem;
+  color: var(--ink-2);
+}
+
 /* ---------- Connexion ---------- */
 .auth {
   min-height: 100dvh;

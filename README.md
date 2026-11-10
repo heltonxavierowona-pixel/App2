@@ -11,6 +11,9 @@ fournisseurs, expéditions, pièces de dossier et coût de revient, en FCFA.
 4. **Documents** — dépôt et validation des cinq pièces par expédition, pièces manquantes.
 5. **Coût de revient** — achat + fret + assurance + douane + transit + transport local, coût unitaire et marge par lot.
 
+L'écran **Équipe** (icône en haut à droite) permet à un administrateur d'inviter ses collègues
+par e-mail et de les retirer.
+
 ## Stack
 
 - Vite + React + TypeScript, sans bibliothèque d'interface (CSS maison, une police auto-hébergée).

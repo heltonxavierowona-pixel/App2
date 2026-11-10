@@ -28,6 +28,15 @@ export function Shell({ section, children }: { section: string; children: ReactN
           <span className="brand-org">{org.name}</span>
         </div>
         <div className="topbar-actions">
+          <a
+            className="topbar-btn"
+            href="#/equipe"
+            aria-label="Équipe"
+            title="Équipe"
+            aria-current={section === 'equipe' ? 'page' : undefined}
+          >
+            <Icon name="users" />
+          </a>
           <button
             className="topbar-btn"
             onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}

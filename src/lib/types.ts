@@ -16,6 +16,14 @@ export interface Organization {
   currency: LocalCurrency
 }
 
+export type Role = 'admin' | 'member'
+
+export interface Invitation {
+  id: string
+  organization_name: string
+  role: Role
+}
+
 export interface Supplier {
   id: string
   name: string
