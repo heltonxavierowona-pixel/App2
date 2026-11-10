@@ -5,6 +5,9 @@ const key = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined
 
 export const isConfigured = Boolean(url && key)
 
+/** Vrai si la page a été ouverte depuis un lien « mot de passe oublié ». */
+export const openedFromRecoveryLink = /[#&]type=recovery\b/.test(window.location.hash)
+
 export const supabase = createClient(url ?? 'http://localhost', key ?? 'missing', {
   auth: { persistSession: true, autoRefreshToken: true },
 })
@@ -23,6 +26,11 @@ export function explain(error: { message: string; code?: string } | Error | unkn
   if (/email not confirmed/i.test(msg))
     return 'Votre e-mail n’est pas encore confirmé. Ouvrez le lien reçu par e-mail.'
   if (/password should be at least/i.test(msg)) return 'Le mot de passe doit compter au moins 6 caractères.'
+  if (/different from the old password/i.test(msg))
+    return 'Choisissez un mot de passe différent de l’ancien.'
+  if (/expired|invalid.*(token|link)/i.test(msg)) return 'Ce lien a expiré. Demandez-en un nouveau.'
+  if (/error sending .*e-?mail/i.test(msg))
+    return 'L’e-mail n’a pas pu être envoyé. Réessayez dans quelques minutes.'
   if (/rate limit/i.test(msg)) return 'Trop de tentatives. Patientez quelques minutes puis réessayez.'
   return msg || 'Une erreur est survenue. Réessayez.'
 }

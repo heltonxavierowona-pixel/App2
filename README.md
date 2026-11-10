@@ -32,11 +32,18 @@ rapport au jour du chargement.
 
 ## Mettre en production
 
-1. Créer un projet Supabase et appliquer les quatre fichiers de `supabase/migrations` dans l'ordre.
+1. Créer un projet Supabase et appliquer les fichiers de `supabase/migrations` dans l'ordre.
 2. Renseigner `VITE_SUPABASE_URL` et `VITE_SUPABASE_ANON_KEY` dans Vercel.
-3. Dans Supabase > Authentication > URL Configuration, mettre l'adresse Vercel dans « Site URL »
-   et dans « Redirect URLs » : sans cela, le lien de confirmation renvoie vers `localhost:3000`.
-   Configurer aussi l'envoi des e-mails (ou désactiver la confirmation pour une démo).
+3. Dans Supabase > Authentication > URL Configuration, mettre l'adresse du site dans « Site URL »
+   et dans « Redirect URLs » : sans cela, les liens de confirmation et de réinitialisation
+   renvoient vers `localhost:3000`.
+4. Dans Supabase > Authentication > Emails, brancher un service d'envoi (SMTP) : l'envoi intégré
+   est limité à quelques e-mails par heure et ne convient pas à de vrais utilisateurs.
+5. Passer le projet Supabase sur une offre payante avant d'y mettre des données réelles :
+   l'offre gratuite n'a pas de sauvegardes et met le projet en pause après une semaine sans activité.
+
+`vercel.json` pose les en-têtes de sécurité (politique de contenu stricte, pas d'affichage en
+cadre). Si le projet Supabase n'est pas sur `*.supabase.co`, adapter `connect-src`.
 
 ## Tests
 

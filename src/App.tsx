@@ -1,19 +1,36 @@
 import type { Session } from '@supabase/supabase-js'
 import { Suspense, lazy, useCallback, useEffect, useState } from 'react'
+import type { ComponentType } from 'react'
+import { ErrorBoundary } from './components/ErrorBoundary.tsx'
 import { Shell } from './components/Shell.tsx'
 import { useRoute } from './lib/router.ts'
 import { StoreProvider } from './lib/store.tsx'
-import { explain, isConfigured, supabase } from './lib/supabase.ts'
+import { explain, isConfigured, openedFromRecoveryLink, supabase } from './lib/supabase.ts'
 import type { Organization } from './lib/types.ts'
 import { Auth } from './screens/Auth.tsx'
+import { NewPassword } from './screens/NewPassword.tsx'
 import { Onboarding } from './screens/Onboarding.tsx'
 
 // Un fichier par écran : le téléphone ne télécharge que ce qu'il affiche.
-const Dashboard = lazy(() => import('./screens/Dashboard.tsx'))
-const Orders = lazy(() => import('./screens/Orders.tsx'))
-const Shipments = lazy(() => import('./screens/Shipments.tsx'))
-const Documents = lazy(() => import('./screens/Documents.tsx'))
-const Costs = lazy(() => import('./screens/Costs.tsx'))
+// Sur une connexion instable, un téléchargement d'écran raté est retenté avant d'abandonner.
+function lazyScreen<P>(load: () => Promise<{ default: ComponentType<P> }>) {
+  return lazy(async () => {
+    for (let attempt = 0; ; attempt++) {
+      try {
+        return await load()
+      } catch (error) {
+        if (attempt >= 2) throw error
+        await new Promise((resolve) => setTimeout(resolve, 1500 * (attempt + 1)))
+      }
+    }
+  })
+}
+
+const Dashboard = lazyScreen(() => import('./screens/Dashboard.tsx'))
+const Orders = lazyScreen(() => import('./screens/Orders.tsx'))
+const Shipments = lazyScreen(() => import('./screens/Shipments.tsx'))
+const Documents = lazyScreen(() => import('./screens/Documents.tsx'))
+const Costs = lazyScreen(() => import('./screens/Costs.tsx'))
 
 const Splash = ({ text = 'Chargement…' }: { text?: string }) => (
   <div className="splash" role="status">
@@ -26,10 +43,14 @@ export function App() {
   const [session, setSession] = useState<Session | null | undefined>(undefined)
   const [org, setOrg] = useState<Organization | null | undefined>(undefined)
   const [error, setError] = useState('')
+  const [recovery, setRecovery] = useState(openedFromRecoveryLink)
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session))
-    const { data } = supabase.auth.onAuthStateChange((_event, s) => setSession(s))
+    const { data } = supabase.auth.onAuthStateChange((event, s) => {
+      if (event === 'PASSWORD_RECOVERY') setRecovery(true)
+      setSession(s)
+    })
     return () => data.subscription.unsubscribe()
   }, [])
 
@@ -60,6 +81,7 @@ export function App() {
     )
   if (session === undefined) return <Splash />
   if (!session) return <Auth />
+  if (recovery) return <NewPassword onDone={() => setRecovery(false)} />
   if (error)
     return (
       <div className="splash">
@@ -96,7 +118,9 @@ function Router() {
 
   return (
     <Shell section={['commandes', 'expeditions', 'documents', 'couts'].includes(section) ? section : ''}>
-      <Suspense fallback={<Splash />}>{screen}</Suspense>
+      <ErrorBoundary key={route.path}>
+        <Suspense fallback={<Splash />}>{screen}</Suspense>
+      </ErrorBoundary>
     </Shell>
   )
 }

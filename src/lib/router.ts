@@ -5,7 +5,11 @@ const subscribe = (cb: () => void) => {
   window.addEventListener('hashchange', cb)
   return () => window.removeEventListener('hashchange', cb)
 }
-const read = () => window.location.hash.replace(/^#/, '') || '/'
+// Un hash qui ne commence pas par « / » (jetons de connexion renvoyés par e-mail) vaut l'accueil.
+const read = () => {
+  const hash = window.location.hash.replace(/^#/, '')
+  return hash.startsWith('/') ? hash : '/'
+}
 
 export interface Route {
   path: string
