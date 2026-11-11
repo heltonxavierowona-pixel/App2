@@ -18,8 +18,8 @@ window.NUMERA = {
       "Chaque produit Numera répond à un besoin concret du quotidien des entreprises : facturer et déclarer sans pénalité, trouver des clients, suivre ses commandes et ses coûts. Nous les concevons, les développons et les faisons évoluer nous-mêmes.",
     ],
     email: "heltonxavierowona@gmail.com",
-    telephones: ["+237 656 56 67 62", "+237 654 36 40 96"],
-    whatsapp: "237656566762", // numéro au format international, sans + ni espaces
+    telephones: ["+237 657 56 67 62", "+237 654 36 40 96"],
+    whatsapp: "237657566762", // numéro au format international, sans + ni espaces
     adresse: "Ayene, Cameroun",
     reseaux: {
       linkedin: "",
