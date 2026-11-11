@@ -62,7 +62,9 @@ window.NUMERA = {
   ],
 
   /* ---------- PROJETS (porte-folio) ----------
-     Pour ajouter un projet : copiez un bloc { ... }, collez-le et modifiez-le.
+     ⚠ Les projets se gèrent maintenant depuis la page admin.html (boutons
+     Ajouter / Modifier / Marquer comme terminé). La liste ci-dessous ne sert
+     que de secours si la base de données est injoignable.
 
      statut      : "termine"  ou  "en-cours"
      avancement  : pourcentage (0 à 100) — facultatif, pour les projets en cours

@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Administration — NUMERA GROUPES</title>
+  <meta name="theme-color" content="#051E36">
+  <link rel="icon" type="image/svg+xml" href="numera-mark.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="admin.css">
+</head>
+<body class="admin">
+  <header class="abar">
+    <div class="wrap abar__in">
+      <a class="logo" href="index.html" aria-label="Retour au site">
+        <img class="logo__mark" src="numera-mark.svg" alt="" width="36" height="36">
+        <span>NUMERA <b>GROUPES</b></span>
+      </a>
+      <div class="abar__actions" id="barre-actions" hidden>
+        <a class="btn btn--ghost btn--sm" href="index.html" target="_blank" rel="noopener">Voir le site</a>
+        <button class="btn btn--ghost btn--sm" id="deconnexion" type="button">Se déconnecter</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap amain">
+    <!-- CONNEXION -->
+    <section class="login" id="ecran-connexion" hidden>
+      <form class="form" id="form-connexion" novalidate>
+        <div>
+          <h1>Administration</h1>
+          <p class="muted">Connectez-vous avec votre compte administrateur <strong>Numera Import-Export</strong> (même e-mail, même mot de passe).</p>
+        </div>
+        <div class="field">
+          <label for="c-email">E-mail</label>
+          <input id="c-email" type="email" autocomplete="username" required>
+        </div>
+        <div class="field">
+          <label for="c-mdp">Mot de passe</label>
+          <input id="c-mdp" type="password" autocomplete="current-password" required>
+        </div>
+        <p class="form__error" id="connexion-erreur" role="alert" hidden></p>
+        <button class="btn" type="submit" id="connexion-bouton">Se connecter</button>
+      </form>
+    </section>
+
+    <!-- GESTION DES PROJETS -->
+    <section id="ecran-projets" hidden>
+      <div class="ahead">
+        <div>
+          <h1>Mes projets</h1>
+          <p class="muted" id="compte-resume"></p>
+        </div>
+        <button class="btn" type="button" id="ajouter">+ Ajouter un projet</button>
+      </div>
+      <p class="notice" id="message" role="status" hidden></p>
+      <ul class="plist" id="liste"></ul>
+      <p class="empty" id="liste-vide" hidden>Aucun projet pour l'instant. Cliquez sur « Ajouter un projet ».</p>
+    </section>
+  </main>
+
+  <!-- FORMULAIRE PROJET -->
+  <dialog class="modal modal--form" id="fenetre" aria-labelledby="fenetre-titre">
+    <form class="pform" id="form-projet" novalidate>
+      <div class="pform__head">
+        <h2 id="fenetre-titre">Ajouter un projet</h2>
+        <button class="modal__close" type="button" id="fermer" aria-label="Fermer">×</button>
+      </div>
+      <div class="pform__body">
+        <div class="field">
+          <label for="p-titre">Nom du projet *</label>
+          <input id="p-titre" maxlength="120" required>
+        </div>
+        <div class="grid2">
+          <div class="field">
+            <label for="p-categorie">Catégorie</label>
+            <input id="p-categorie" maxlength="60" list="categories" placeholder="ex. Facturation & TVA">
+            <datalist id="categories"></datalist>
+          </div>
+          <div class="field">
+            <label for="p-annee">Année</label>
+            <input id="p-annee" maxlength="20" placeholder="ex. 2026">
+          </div>
+        </div>
+        <fieldset class="field">
+          <legend>État du projet</legend>
+          <div class="seg">
+            <label><input type="radio" name="statut" value="en-cours" checked> <span>En cours</span></label>
+            <label><input type="radio" name="statut" value="termine"> <span>Terminé</span></label>
+          </div>
+        </fieldset>
+        <div class="field" id="champ-avancement">
+          <label for="p-avancement">Avancement en % <small>(facultatif)</small></label>
+          <input id="p-avancement" type="number" min="0" max="100" step="5" placeholder="ex. 60">
+        </div>
+        <div class="field">
+          <label for="p-resume">Résumé en une phrase *</label>
+          <textarea id="p-resume" rows="2" maxlength="400" required></textarea>
+        </div>
+        <div class="field">
+          <label for="p-description">Description détaillée</label>
+          <textarea id="p-description" rows="4" maxlength="4000"></textarea>
+        </div>
+        <div class="field">
+          <label for="p-points">Points forts <small>(un par ligne)</small></label>
+          <textarea id="p-points" rows="4"></textarea>
+        </div>
+        <div class="grid2">
+          <div class="field">
+            <label for="p-client">Client</label>
+            <input id="p-client" maxlength="120" placeholder="ex. Produit NUMERA GROUPES">
+          </div>
+          <div class="field">
+            <label for="p-technologies">Technologies <small>(séparées par des virgules)</small></label>
+            <input id="p-technologies" placeholder="ex. React, Supabase">
+          </div>
+        </div>
+        <div class="field">
+          <label for="p-lien">Adresse du projet en ligne <small>(facultatif)</small></label>
+          <input id="p-lien" type="url" maxlength="500" placeholder="https://…">
+        </div>
+        <div class="field">
+          <label for="p-vignette">Texte de la couverture <small>(si pas d'image)</small></label>
+          <input id="p-vignette" maxlength="40" placeholder="ex. Factures & TVA">
+        </div>
+        <div class="field">
+          <label for="p-image">Image du projet <small>(capture d'écran, 3 Mo maximum)</small></label>
+          <div class="upload">
+            <img id="apercu" alt="" hidden>
+            <div>
+              <input id="p-image" type="file" accept="image/png,image/jpeg,image/webp">
+              <button class="lien" type="button" id="retirer-image" hidden>Retirer l'image</button>
+            </div>
+          </div>
+        </div>
+        <p class="form__error" id="projet-erreur" role="alert" hidden></p>
+      </div>
+      <div class="pform__foot">
+        <button class="btn btn--plain" type="button" id="annuler">Annuler</button>
+        <button class="btn" type="submit" id="enregistrer">Enregistrer</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="config.js"></script>
+  <script src="admin.js"></script>
+</body>
+</html>

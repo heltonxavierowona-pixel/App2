@@ -5,7 +5,12 @@
 
   var D = window.NUMERA || {};
   var E = D.entreprise || {};
+  var CFG = window.NUMERA_CONFIG || null;
   var projets = D.projets || [];
+  try {
+    var cache = JSON.parse(localStorage.getItem("numera-projets") || "null");
+    if (CFG && Array.isArray(cache)) projets = cache;
+  } catch (e) {}
   var $ = function (id) { return document.getElementById(id); };
 
   function esc(v) {
@@ -29,14 +34,17 @@
   $("apropos-texte").innerHTML = (E.apropos || []).map(function (p) { return "<p>" + esc(p) + "</p>"; }).join("");
 
   /* ---------- Chiffres clés (calculés à partir des projets) ---------- */
-  var nbFinis = projets.filter(function (p) { return p.statut === "termine"; }).length;
-  var nbCours = projets.filter(function (p) { return p.statut === "en-cours"; }).length;
-  var categories = projets.map(function (p) { return p.categorie; }).filter(function (c, i, a) { return c && a.indexOf(c) === i; });
-  $("stats").innerHTML = [
-    [nbFinis, nbFinis > 1 ? "projets réalisés" : "projet réalisé"],
-    [nbCours, nbCours > 1 ? "projets en cours" : "projet en cours"],
-    [categories.length, categories.length > 1 ? "domaines d'expertise" : "domaine d'expertise"],
-  ].map(function (s) { return "<div><dt>" + s[1] + "</dt><dd>" + pad(s[0]) + "</dd></div>"; }).join("");
+  var nbFinis, nbCours, categories;
+  function majChiffres() {
+    nbFinis = projets.filter(function (p) { return p.statut === "termine"; }).length;
+    nbCours = projets.filter(function (p) { return p.statut === "en-cours"; }).length;
+    categories = projets.map(function (p) { return p.categorie; }).filter(function (c, i, a) { return c && a.indexOf(c) === i; });
+    $("stats").innerHTML = [
+      [nbFinis, nbFinis > 1 ? "projets réalisés" : "projet réalisé"],
+      [nbCours, nbCours > 1 ? "projets en cours" : "projet en cours"],
+      [categories.length, categories.length > 1 ? "domaines d'expertise" : "domaine d'expertise"],
+    ].map(function (s) { return "<div><dt>" + s[1] + "</dt><dd>" + pad(s[0]) + "</dd></div>"; }).join("");
+  }
 
   /* ---------- Services & méthode ---------- */
   $("services-liste").innerHTML = (D.services || []).map(function (s, i) {
@@ -82,9 +90,14 @@
       renderProjets();
     };
   }
-  chips($("filtre-statut"), [["tous", "Tous", projets.length], ["termine", "Réalisés", nbFinis], ["en-cours", "En cours", nbCours]], "statut");
-  if (categories.length > 1) {
-    chips($("filtre-categorie"), [["toutes", "Toutes catégories"]].concat(categories.map(function (c) { return [c, c]; })), "categorie");
+  function majFiltres() {
+    if (categories.indexOf(filtre.categorie) < 0) filtre.categorie = "toutes";
+    chips($("filtre-statut"), [["tous", "Tous", projets.length], ["termine", "Réalisés", nbFinis], ["en-cours", "En cours", nbCours]], "statut");
+    if (categories.length > 1) {
+      chips($("filtre-categorie"), [["toutes", "Toutes catégories"]].concat(categories.map(function (c) { return [c, c]; })), "categorie");
+    } else {
+      $("filtre-categorie").innerHTML = "";
+    }
   }
 
   function renderProjets() {
@@ -101,17 +114,38 @@
     $("projets-liste").innerHTML = html;
     $("projets-vide").hidden = html !== "";
   }
-  renderProjets();
 
   /* ---------- Fenêtre de détail ---------- */
   var modal = $("modal");
-  $("hero-stack").innerHTML = projets.slice(0, 3).map(function (p, i) {
+  function majHero() {
+    $("hero-stack").innerHTML = projets.slice(0, 3).map(function (p, i) {
     var run = p.statut === "en-cours";
     var sigle = String(p.vignette || p.titre).split(/\s+/).map(function (w) { return w.charAt(0); }).join("").slice(0, 2).toUpperCase();
     return '<button type="button" class="mini" data-i="' + i + '"><span class="mini__icon" aria-hidden="true">' + esc(sigle) + "</span>" +
       "<span><strong>" + esc(p.titre) + "</strong><small>" + esc(p.categorie) + "</small></span>" +
-      '<span class="mini__state' + (run ? " mini__state--run" : "") + '">' + (run ? "En cours" : "En ligne") + "</span></button>";
-  }).join("");
+      '<span class="mini__state' + (run ? " mini__state--run" : "") + '">' + (run ? "En cours" : "Réalisé") + "</span></button>";
+    }).join("");
+  }
+  function afficher() { majChiffres(); majFiltres(); majHero(); renderProjets(); }
+  afficher();
+
+  /* Les projets sont gérés depuis l'espace d'administration (admin.html) :
+     on affiche d'abord la dernière version connue, puis on la met à jour. */
+  if (CFG) {
+    fetch(CFG.url + "/rest/v1/vitrine_projets?select=*&order=position.asc,created_at.asc", {
+      headers: { apikey: CFG.key, Authorization: "Bearer " + CFG.key },
+    }).then(function (r) {
+      if (!r.ok) throw new Error(r.status);
+      return r.json();
+    }).then(function (rows) {
+      if (!Array.isArray(rows)) return;
+      var txt = JSON.stringify(rows);
+      if (txt === JSON.stringify(projets)) return;
+      projets = rows;
+      try { localStorage.setItem("numera-projets", txt); } catch (e) {}
+      afficher();
+    }).catch(function () { /* hors ligne : on garde la version affichée */ });
+  }
   $("hero-stack").addEventListener("click", ouvrir);
   $("projets-liste").addEventListener("click", ouvrir);
   function ouvrir(e) {

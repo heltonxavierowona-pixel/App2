@@ -6,29 +6,28 @@ Site vitrine et porte-folio de l'entreprise. Site statique : aucun serveur ni in
 
 Ouvrez `index.html` dans un navigateur.
 
-## Modifier le contenu
+## Gérer les projets (sans toucher au code)
 
-Tout le contenu se trouve dans **`data.js`** :
+Ouvrez **`/admin.html`** (lien « Administration » en bas du site) et connectez-vous avec le compte
+administrateur Numera Import-Export. Vous pouvez alors :
+
+- **Ajouter un projet** (bouton en haut à droite), avec une image si vous le souhaitez ;
+- **Modifier** ou **Supprimer** un projet ;
+- **Marquer comme terminé** / **Remettre en cours** en un clic ;
+- changer l'ordre d'affichage avec les flèches ↑ ↓ (les trois premiers apparaissent en haut de l'accueil).
+
+Les changements sont visibles sur le site immédiatement. Les projets sont enregistrés dans la table
+`vitrine_projets` et les images dans le dossier `vitrine` du projet Supabase `numera-import-export`
+(adresse et clé publique dans `config.js`). Seuls les comptes inscrits dans `platform_admins` peuvent écrire.
+
+## Modifier les autres textes
+
+Le reste du contenu se trouve dans **`data.js`** :
 
 - `entreprise` : slogan, texte de présentation, e-mail, téléphones, WhatsApp, adresse, réseaux sociaux
 - `services` : les domaines d'activité
 - `methode` : les étapes de travail
-- `projets` : le porte-folio
-
-### Ajouter un projet
-
-Copiez un bloc `{ ... }` dans la liste `projets` et modifiez-le :
-
-| Champ | Rôle |
-|---|---|
-| `statut` | `"termine"` ou `"en-cours"` |
-| `avancement` | pourcentage (projets en cours uniquement) |
-| `vignette` | texte court affiché sur la couverture automatique |
-| `points` | liste des points forts affichés dans la fiche |
-| `image` | chemin d'une image, ex. `"images/mon-projet.jpg"` (créez un dossier `images/`). Vide = couverture automatique |
-| `lien` | adresse du projet en ligne (commençant par `https://`) |
-
-Les compteurs de la page d'accueil et les filtres se mettent à jour tout seuls.
+- `projets` : liste de secours, affichée seulement si la base de données est injoignable
 
 ## Mettre en ligne
 
