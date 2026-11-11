@@ -3,16 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>NUMERA GROUPES — Solutions numériques sur mesure</title>
-  <meta name="description" content="NUMERA GROUPES conçoit des sites web, des applications et des solutions digitales sur mesure. Découvrez nos services et nos réalisations.">
-  <meta property="og:title" content="NUMERA GROUPES — Solutions numériques sur mesure">
-  <meta property="og:description" content="Sites web, applications et solutions digitales sur mesure. Découvrez nos réalisations.">
+  <title>NUMERA GROUPES — Éditeur de logiciels pour les entreprises</title>
+  <meta name="description" content="NUMERA GROUPES conçoit des logiciels en ligne pour les PME du Cameroun et d'Afrique : facturation et TVA, vente assistée par IA, import-export.">
+  <meta property="og:title" content="NUMERA GROUPES — Éditeur de logiciels pour les entreprises">
+  <meta property="og:description" content="Facturation et TVA, vente assistée par IA, import-export : découvrez nos produits.">
   <meta property="og:type" content="website">
-  <meta name="theme-color" content="#0d1220">
-  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <meta name="theme-color" content="#051E36">
+  <link rel="icon" type="image/svg+xml" href="numera-mark.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -21,13 +21,13 @@
   <header class="header" id="header">
     <div class="wrap header__in">
       <a class="logo" href="#accueil" aria-label="NUMERA GROUPES — accueil">
-        <svg class="logo__mark" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="currentColor"/><path d="M9 23V9l14 14V9" fill="none" stroke="var(--accent)" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <img class="logo__mark" src="numera-mark.svg" alt="" width="36" height="36">
         <span>NUMERA <b>GROUPES</b></span>
       </a>
       <button class="burger" id="burger" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="nav"><span></span><span></span></button>
       <nav class="nav" id="nav" aria-label="Navigation principale">
         <a href="#apropos">À propos</a>
-        <a href="#services">Services</a>
+        <a href="#services">Domaines</a>
         <a href="#projets">Projets</a>
         <a href="#methode">Méthode</a>
         <a class="btn btn--sm" href="#contact">Nous contacter</a>
@@ -39,13 +39,16 @@
     <!-- ACCUEIL -->
     <section class="hero" id="accueil">
       <div class="wrap hero__in">
-        <p class="eyebrow eyebrow--light">Entreprise de solutions numériques</p>
-        <h1 id="hero-slogan">Nous donnons forme à vos idées numériques.</h1>
+        <div class="hero__text">
+        <p class="eyebrow eyebrow--light">Éditeur de logiciels · Cameroun</p>
+        <h1 id="hero-slogan">Des logiciels qui font grandir les entreprises.</h1>
         <p class="hero__lead" id="hero-accroche"></p>
         <div class="hero__cta">
           <a class="btn" href="#projets">Voir nos projets</a>
-          <a class="btn btn--ghost" href="#contact">Parler de votre projet</a>
+          <a class="btn btn--ghost" href="#contact">Nous contacter</a>
         </div>
+        </div>
+        <div class="hero__stack" id="hero-stack" aria-label="Nos produits"></div>
         <dl class="stats" id="stats"></dl>
       </div>
     </section>
@@ -55,7 +58,7 @@
       <div class="wrap split">
         <div>
           <p class="eyebrow">À propos</p>
-          <h2>Un partenaire numérique à votre écoute</h2>
+          <h2>Des outils simples pour des besoins réels</h2>
         </div>
         <div class="prose reveal" id="apropos-texte"></div>
       </div>
@@ -64,7 +67,7 @@
     <!-- SERVICES -->
     <section class="section section--tint" id="services">
       <div class="wrap">
-        <p class="eyebrow">Services</p>
+        <p class="eyebrow">Domaines</p>
         <h2>Ce que nous faisons</h2>
         <div class="cards" id="services-liste"></div>
       </div>
@@ -77,7 +80,7 @@
           <div>
             <p class="eyebrow">Porte-folio</p>
             <h2>Nos projets</h2>
-            <p class="muted">Les réalisations livrées et celles sur lesquelles nous travaillons en ce moment.</p>
+            <p class="muted">Les produits déjà en ligne et ceux sur lesquels nous travaillons en ce moment.</p>
           </div>
         </div>
         <div class="filters">
@@ -103,8 +106,8 @@
       <div class="wrap split">
         <div>
           <p class="eyebrow">Contact</p>
-          <h2>Un projet en tête&nbsp;? Parlons-en.</h2>
-          <p class="muted">Décrivez-nous votre besoin, nous vous répondons rapidement.</p>
+          <h2>Une question, un projet&nbsp;? Parlons-en.</h2>
+          <p class="muted">Écrivez-nous ou appelez-nous, nous vous répondons rapidement.</p>
           <ul class="contact-list" id="contact-infos"></ul>
         </div>
         <form class="form reveal" id="contact-form" novalidate>
@@ -117,7 +120,7 @@
             <input id="f-email" name="email" type="email" autocomplete="email" required>
           </div>
           <div class="field">
-            <label for="f-type">Type de projet</label>
+            <label for="f-type">Sujet</label>
             <select id="f-type" name="type"></select>
           </div>
           <div class="field">
@@ -136,14 +139,14 @@
     <div class="wrap footer__in">
       <div>
         <a class="logo logo--light" href="#accueil">
-          <svg class="logo__mark" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="currentColor"/><path d="M9 23V9l14 14V9" fill="none" stroke="var(--accent)" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <img class="logo__mark" src="numera-mark.svg" alt="" width="36" height="36">
           <span>NUMERA <b>GROUPES</b></span>
         </a>
         <p class="footer__tag" id="footer-slogan"></p>
       </div>
       <nav class="footer__nav" aria-label="Pied de page">
         <a href="#apropos">À propos</a>
-        <a href="#services">Services</a>
+        <a href="#services">Domaines</a>
         <a href="#projets">Projets</a>
         <a href="#contact">Contact</a>
       </nav>

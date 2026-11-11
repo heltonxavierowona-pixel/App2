@@ -19,7 +19,10 @@
   function pad(n) { return (n < 10 ? "0" : "") + n; }
 
   /* ---------- Textes généraux ---------- */
-  if (E.slogan) $("hero-slogan").textContent = E.slogan;
+  if (E.slogan) {
+    var mots = E.slogan.split(" "), fin = mots.splice(-2).join(" ");
+    $("hero-slogan").innerHTML = esc(mots.join(" ")) + " <em>" + esc(fin) + "</em>";
+  }
   $("hero-accroche").textContent = E.accroche || "";
   $("footer-slogan").textContent = E.slogan || "";
   $("annee").textContent = new Date().getFullYear();
@@ -44,14 +47,13 @@
   }).join("");
 
   /* ---------- Projets ---------- */
-  var PALETTE = [["#2f5bea", "#16255f"], ["#e0672f", "#6b2408"], ["#1f8a5b", "#0b3d2a"], ["#8b4fd9", "#33186b"], ["#d13d6a", "#5e1230"], ["#1c8ea8", "#0a3b49"]];
+  var PALETTE = [["#0A3B66", "#051E36"], ["#00875A", "#03402c"], ["#0A5FA8", "#0A3B66"], ["#0b6b6b", "#052f3a"]];
   function cover(p) {
     var i = Math.max(0, categories.indexOf(p.categorie)) % PALETTE.length;
     var c = PALETTE[i];
-    var titre = String(p.titre || "").replace(/^Exemple\s*[—-]\s*/i, "");
     var inner = p.image
       ? '<img src="' + esc(p.image) + '" alt="" loading="lazy">'
-      : '<span class="cover__letter" aria-hidden="true">' + esc(titre.charAt(0).toUpperCase()) + "</span>";
+      : '<span class="cover__label" aria-hidden="true"><img src="numera-mark.svg" alt="">' + esc(p.vignette || p.titre) + "</span>";
     return '<div class="cover" style="background:linear-gradient(135deg,' + c[0] + "," + c[1] + ')">' + inner + "</div>";
   }
   function badge(p, cls) {
@@ -103,8 +105,17 @@
 
   /* ---------- Fenêtre de détail ---------- */
   var modal = $("modal");
-  $("projets-liste").addEventListener("click", function (e) {
-    var card = e.target.closest(".project");
+  $("hero-stack").innerHTML = projets.slice(0, 3).map(function (p, i) {
+    var run = p.statut === "en-cours";
+    var sigle = String(p.vignette || p.titre).split(/\s+/).map(function (w) { return w.charAt(0); }).join("").slice(0, 2).toUpperCase();
+    return '<button type="button" class="mini" data-i="' + i + '"><span class="mini__icon" aria-hidden="true">' + esc(sigle) + "</span>" +
+      "<span><strong>" + esc(p.titre) + "</strong><small>" + esc(p.categorie) + "</small></span>" +
+      '<span class="mini__state' + (run ? " mini__state--run" : "") + '">' + (run ? "En cours" : "En ligne") + "</span></button>";
+  }).join("");
+  $("hero-stack").addEventListener("click", ouvrir);
+  $("projets-liste").addEventListener("click", ouvrir);
+  function ouvrir(e) {
+    var card = e.target.closest("[data-i]");
     if (!card) return;
     var p = projets[card.dataset.i];
     var lien = safeUrl(p.lien);
@@ -117,19 +128,20 @@
       (p.categorie ? "<div><dt>Catégorie</dt><dd>" + esc(p.categorie) + "</dd></div>" : "") +
       (p.annee ? "<div><dt>Année</dt><dd>" + esc(p.annee) + "</dd></div>" : "") +
       "</dl>" +
+      ((p.points || []).length ? '<ul class="points">' + p.points.map(function (t) { return "<li>" + esc(t) + "</li>"; }).join("") + "</ul>" : "") +
       ((p.technologies || []).length ? '<ul class="tags">' + p.technologies.map(function (t) { return "<li>" + esc(t) + "</li>"; }).join("") + "</ul>" : "") +
       (lien ? '<a class="btn btn--dark" href="' + esc(lien) + '" target="_blank" rel="noopener">Visiter le projet</a>' : "") +
       "</div>";
     modal.showModal();
     modal.scrollTop = 0;
-  });
+  }
   $("modal-close").addEventListener("click", function () { modal.close(); });
   modal.addEventListener("click", function (e) { if (e.target === modal) modal.close(); });
 
   /* ---------- Contact ---------- */
   var infos = [];
   if (E.email) infos.push(["E-mail", E.email, "mailto:" + E.email]);
-  if (E.telephone) infos.push(["Téléphone", E.telephone, "tel:" + E.telephone.replace(/[^\d+]/g, "")]);
+  (E.telephones || []).forEach(function (t) { infos.push(["Téléphone", t, "tel:" + t.replace(/[^\d+]/g, "")]); });
   if (E.whatsapp) infos.push(["WhatsApp", "Discuter sur WhatsApp", "https://wa.me/" + E.whatsapp.replace(/\D/g, "")]);
   if (E.adresse) infos.push(["Adresse", E.adresse, ""]);
   $("contact-infos").innerHTML = infos.map(function (c) {
@@ -144,7 +156,7 @@
     var ok = f.nom.value.trim() && /^\S+@\S+\.\S+$/.test(f.email.value.trim()) && f.message.value.trim();
     $("form-error").hidden = !!ok;
     if (!ok) return;
-    var sujet = "Demande de projet (" + f.type.value + ") — " + f.nom.value.trim();
+    var sujet = "Contact site NUMERA GROUPES (" + f.type.value + ") — " + f.nom.value.trim();
     var corps = f.message.value.trim() + "\n\n—\n" + f.nom.value.trim() + "\n" + f.email.value.trim();
     window.location.href = "mailto:" + (E.email || "") + "?subject=" + encodeURIComponent(sujet) + "&body=" + encodeURIComponent(corps);
   });

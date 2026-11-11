@@ -10,17 +10,17 @@ window.NUMERA = {
   /* ---------- Informations de l'entreprise ---------- */
   entreprise: {
     nom: "NUMERA GROUPES",
-    slogan: "Nous donnons forme à vos idées numériques.",
+    slogan: "Des logiciels qui font grandir les entreprises.",
     accroche:
-      "Sites web, applications et solutions digitales sur mesure. Nous accompagnons les entreprises, de l'idée jusqu'à la mise en ligne.",
+      "NUMERA GROUPES conçoit et édite des plateformes en ligne pour les PME du Cameroun et d'Afrique : facturation et TVA, vente assistée par l'intelligence artificielle, import-export.",
     apropos: [
-      "NUMERA GROUPES est une entreprise spécialisée dans la conception de solutions numériques. Nous aidons les entrepreneurs, les PME et les organisations à se doter d'outils modernes, fiables et simples à utiliser.",
-      "Chaque projet est mené avec la même exigence : comprendre le besoin, proposer la solution la plus juste, puis livrer un produit dont nos clients sont fiers.",
+      "NUMERA GROUPES est un éditeur de logiciels basé au Cameroun. Nous créons des outils en ligne simples, fiables et adaptés aux réalités locales : paiement par Mobile Money, règles fiscales camerounaises, usage sur téléphone comme sur ordinateur.",
+      "Chaque produit Numera répond à un besoin concret du quotidien des entreprises : facturer et déclarer sans pénalité, trouver des clients, suivre ses commandes et ses coûts. Nous les concevons, les développons et les faisons évoluer nous-mêmes.",
     ],
-    email: "contact@numeragroupes.com", // ← à remplacer par votre adresse
-    telephone: "", // ex. "+237 6 00 00 00 00" (laisser vide pour masquer)
-    whatsapp: "", // numéro au format international sans + ni espaces, ex. "237600000000"
-    adresse: "", // ex. "Yaoundé, Cameroun"
+    email: "heltonxavierowona@gmail.com",
+    telephones: ["+237 656 56 67 62", "+237 654 36 40 96"],
+    whatsapp: "237656566762", // numéro au format international, sans + ni espaces
+    adresse: "Ayene, Cameroun",
     reseaux: {
       linkedin: "",
       facebook: "",
@@ -29,114 +29,111 @@ window.NUMERA = {
     },
   },
 
-  /* ---------- Services proposés ---------- */
+  /* ---------- Domaines d'activité ---------- */
   services: [
     {
-      titre: "Sites web",
+      titre: "Facturation & fiscalité",
       texte:
-        "Sites vitrines, e-commerce et plateformes sur mesure, rapides et adaptés à tous les écrans.",
+        "Factures conformes, déclaration de TVA mensuelle calculée automatiquement et suivi des échéances pour éviter les pénalités.",
     },
     {
-      titre: "Applications",
+      titre: "Vente assistée par l'IA",
       texte:
-        "Applications web et mobiles pensées pour vos utilisateurs : gestion, réservation, suivi, tableaux de bord.",
+        "Un agent intelligent qui trouve des prospects sur les réseaux sociaux, converse sur WhatsApp et relance jusqu'à la vente.",
     },
     {
-      titre: "Design & identité",
+      titre: "Import-export",
       texte:
-        "Logos, chartes graphiques et interfaces soignées pour une image de marque cohérente.",
+        "Suivi des commandes, des expéditions, des documents et du coût de revient, du fournisseur jusqu'à la livraison.",
     },
     {
-      titre: "Conseil & accompagnement",
+      titre: "Solutions sur mesure",
       texte:
-        "Audit, stratégie digitale, maintenance et formation pour faire évoluer vos outils dans la durée.",
+        "Un besoin particulier ? Nous concevons des applications web adaptées à votre activité et à votre façon de travailler.",
     },
   ],
 
   /* ---------- Méthode de travail ---------- */
   methode: [
-    { titre: "Écoute", texte: "Nous prenons le temps de comprendre votre activité, vos objectifs et vos contraintes." },
-    { titre: "Conception", texte: "Maquettes et plan de réalisation validés avec vous avant de commencer." },
-    { titre: "Réalisation", texte: "Développement par étapes, avec des points réguliers pour que vous suiviez l'avancée." },
-    { titre: "Livraison & suivi", texte: "Mise en ligne, prise en main et accompagnement après le lancement." },
+    { titre: "Écoute", texte: "Nous partons d'un problème réel, observé sur le terrain auprès des entreprises." },
+    { titre: "Conception", texte: "Des écrans simples, pensés pour le téléphone comme pour l'ordinateur." },
+    { titre: "Réalisation", texte: "Un développement rigoureux, vérifié par des tests automatiques à chaque étape." },
+    { titre: "Suivi", texte: "Mise en ligne, accompagnement des utilisateurs et améliorations continues." },
   ],
 
   /* ---------- PROJETS (porte-folio) ----------
      Pour ajouter un projet : copiez un bloc { ... }, collez-le et modifiez-le.
 
      statut      : "termine"  ou  "en-cours"
-     avancement  : pourcentage (0 à 100), utilisé pour les projets en cours
-     image       : chemin d'une image (ex. "images/mon-projet.jpg").
-                   Laissez "" pour afficher une couverture générée automatiquement.
+     avancement  : pourcentage (0 à 100) — facultatif, pour les projets en cours
+     vignette    : texte court affiché en grand sur la couverture
+     image       : capture d'écran du projet (ex. "images/numera.jpg").
+                   Laissez "" pour afficher la couverture automatique.
      lien        : adresse du projet en ligne (laisser "" s'il n'y en a pas)
-
-     ⚠ Les projets ci-dessous sont des EXEMPLES à remplacer par vos vrais projets.
   ------------------------------------------------ */
   projets: [
     {
-      titre: "Exemple — Site vitrine d'entreprise",
-      categorie: "Site web",
+      titre: "Numera",
+      categorie: "Facturation & TVA",
       statut: "termine",
       annee: "2026",
-      client: "Nom du client",
-      resume: "Refonte complète du site d'une PME avec présentation des services et formulaire de contact.",
+      client: "Produit NUMERA GROUPES",
+      vignette: "Factures & TVA",
+      resume:
+        "Le logiciel de facturation et de déclaration de TVA des PME et des cabinets comptables du Cameroun.",
       description:
-        "Décrivez ici le contexte du projet, le besoin du client, ce que vous avez réalisé et le résultat obtenu.",
-      technologies: ["HTML", "CSS", "JavaScript"],
+        "Une PME y émet des factures conformes et obtient chaque mois sa déclaration de TVA calculée automatiquement, avant l'échéance du 15. Un cabinet comptable y suit tout son portefeuille de dossiers sur un seul écran, trié par urgence. Les abonnements se paient par MTN Mobile Money ou Orange Money.",
+      points: [
+        "Factures, avoirs et achats avec numérotation continue",
+        "Déclaration de TVA mensuelle en un clic",
+        "Alertes d'échéance et estimation des pénalités",
+        "Tableau de bord de portefeuille pour les cabinets",
+        "Paiement par Mobile Money, essai gratuit",
+      ],
+      technologies: ["Next.js", "NestJS", "PostgreSQL", "Mobile Money"],
       image: "",
-      lien: "",
+      lien: "https://numera-topaz.vercel.app",
     },
     {
-      titre: "Exemple — Boutique en ligne",
-      categorie: "E-commerce",
-      statut: "termine",
-      annee: "2025",
-      client: "Nom du client",
-      resume: "Boutique en ligne avec catalogue, panier et paiement mobile.",
-      description:
-        "Décrivez ici le contexte du projet, le besoin du client, ce que vous avez réalisé et le résultat obtenu.",
-      technologies: ["React", "Node.js"],
-      image: "",
-      lien: "",
-    },
-    {
-      titre: "Exemple — Identité visuelle",
-      categorie: "Design",
-      statut: "termine",
-      annee: "2025",
-      client: "Nom du client",
-      resume: "Création du logo, de la charte graphique et des supports de communication.",
-      description:
-        "Décrivez ici le contexte du projet, le besoin du client, ce que vous avez réalisé et le résultat obtenu.",
-      technologies: ["Figma", "Illustrator"],
-      image: "",
-      lien: "",
-    },
-    {
-      titre: "Exemple — Application de gestion des tâches",
-      categorie: "Application",
+      titre: "Numera Agentic",
+      categorie: "Intelligence artificielle",
       statut: "en-cours",
-      avancement: 60,
       annee: "2026",
-      client: "Projet interne",
-      resume: "Outil de suivi des tâches et de la performance des équipes, avec tableau de bord.",
+      client: "Produit NUMERA GROUPES",
+      vignette: "Agent IA de vente",
+      resume:
+        "Un agent IA qui trouve les bons prospects, les amène sur WhatsApp, converse et relance jusqu'à la vente.",
       description:
-        "Décrivez ici l'objectif du projet, ce qui est déjà fait et les prochaines étapes.",
-      technologies: ["React", "Express", "Base de données"],
+        "Chaque entreprise décrit son produit ; l'agent IA identifie les bons prospects sur les réseaux sociaux, les fait passer sur WhatsApp dès qu'ils montrent de l'intérêt, puis converse et relance jusqu'à la vente. L'utilisateur pilote tout depuis la plateforme et valide lui-même les sujets sensibles comme les prix.",
+      points: [
+        "Analyse IA du produit : cibles, réseaux, ton, langues",
+        "Boîte de réception unique WhatsApp, Messenger, Instagram",
+        "Pilote automatique avec validation humaine des prix",
+        "Relances limitées et respect des règles des réseaux",
+        "Tableau de bord et alertes en temps réel",
+      ],
+      technologies: ["React", "Supabase", "IA générative", "API WhatsApp Business"],
       image: "",
       lien: "",
     },
     {
-      titre: "Exemple — Application mobile de réservation",
-      categorie: "Application",
+      titre: "Numera Import-Export",
+      categorie: "Import-export",
       statut: "en-cours",
-      avancement: 35,
       annee: "2026",
-      client: "Nom du client",
-      resume: "Application permettant de réserver et de payer une prestation depuis son téléphone.",
+      client: "Produit NUMERA GROUPES",
+      vignette: "Import-Export",
+      resume:
+        "Suivi des commandes, des expéditions, des documents et des coûts de revient pour les importateurs.",
       description:
-        "Décrivez ici l'objectif du projet, ce qui est déjà fait et les prochaines étapes.",
-      technologies: ["React Native"],
+        "Une application pour les entreprises d'import-export : suivre chaque commande et chaque expédition, centraliser les documents et connaître précisément son coût de revient.",
+      points: [
+        "Suivi des commandes et des expéditions",
+        "Gestion des documents",
+        "Calcul du coût de revient",
+        "Utilisable sur téléphone, en clair ou en sombre",
+      ],
+      technologies: ["React", "Vite", "Supabase"],
       image: "",
       lien: "",
     },
