@@ -3,6 +3,7 @@ import { useStore } from '../store.jsx';
 import { Icon, PageHead, Tabs, Empty } from '../ui.jsx';
 import {
   periodRange, metrics, topProducts, dailySeries, lowStock, totalDebt, stockValue, PAYMENTS,
+  totalSupplierDebt,
 } from '../lib/logic.js';
 import { insights } from '../lib/insights.js';
 
@@ -15,7 +16,7 @@ function Delta({ cur, prev, label }) {
   const up = pct >= 0;
   return (
     <small className={up ? 'pos' : 'neg'}>
-      <Icon name={up ? 'up' : 'down'} size={13} /> {up ? '+' : ''}{pct} % vs {label}
+      <Icon name={up ? 'up' : 'down'} size={13} /> {Math.abs(pct) > 300 ? `${up ? '+' : '−'}300 % et plus` : `${up ? '+' : ''}${pct} %`} vs {label}
     </small>
   );
 }
@@ -65,16 +66,17 @@ export default function Dashboard({ go }) {
       series: dailySeries(state, period === 'month' ? 30 : 14, now),
       low: lowStock(state),
       debt: totalDebt(state),
+      supplierDebt: totalSupplierDebt(state),
       stock: stockValue(state),
       tips: insights(state, fmt, now).slice(0, 3),
     };
   }, [state, period, fmt]);
-  const { cur, prev, top, series, low, debt, stock, tips } = data;
+  const { cur, prev, top, series, low, debt, supplierDebt, stock, tips } = data;
 
   if (!state.products.length)
     return (
       <>
-        <PageHead title={state.settings.shopName} sub="Bienvenue dans COMMERCE AI" />
+        <PageHead title={state.settings.shopName} sub="Bienvenue dans NUMERA COMMERCIAL AI" />
         <div className="card">
           <Empty icon="spark" title="Commencez en deux minutes">
             Ajoutez vos premiers produits, ou chargez des données de démonstration pour découvrir l'application.
@@ -171,6 +173,8 @@ export default function Dashboard({ go }) {
           <ul className="plain">
             <li className="rank-line"><span>Dettes clients à recouvrer</span>
               <button className="link num" onClick={() => go('customers')}>{fmt(debt)}</button></li>
+            <li className="rank-line"><span>Dû aux fournisseurs</span>
+              <button className="link num" onClick={() => go('purchases')}>{fmt(supplierDebt)}</button></li>
             <li className="rank-line"><span>Valeur du stock (prix d'achat)</span><span className="num">{fmt(stock.cost)}</span></li>
             <li className="rank-line"><span>Valeur du stock (prix de vente)</span><span className="num">{fmt(stock.retail)}</span></li>
           </ul>
@@ -206,7 +210,7 @@ export default function Dashboard({ go }) {
               </li>
             ))}
           </ul>
-          <button className="link" onClick={() => go('insights')}>Voir tous les conseils →</button>
+          <button className="link" onClick={() => go('assistant')}>Voir tous les conseils →</button>
         </section>
       )}
     </>

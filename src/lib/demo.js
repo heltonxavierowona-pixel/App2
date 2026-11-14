@@ -1,6 +1,7 @@
 // Jeu de données de démonstration (déterministe) pour découvrir l'application.
 import {
-  emptyState, saveProduct, saveCustomer, addSale, addExpense, addPayment, addMovement, addDays,
+  emptyState, saveProduct, saveCustomer, addSale, addExpense, addPayment, addDays,
+  saveSupplier, addPurchase, hasVariants, addClosing, cashExpected,
 } from './logic.js';
 
 function rng(seed) {
@@ -37,9 +38,15 @@ export function demoState(now = new Date()) {
   };
 
   let s = emptyState();
-  s.settings.shopName = 'Boutique Démo';
-  for (const [name, code, category, cost, price, stock, minStock] of PRODUCTS)
-    s = saveProduct(s, { name, code, category, cost, price, stock, minStock, date: at(50, 8) });
+  for (const [name, code, category, cost, price, stock, minStock] of PRODUCTS) {
+    // Les baskets sont suivies par pointure pour montrer les variantes.
+    const variants = code === 'CH-001'
+      ? ['40', '41', '42', '43', '44'].map((label) => ({ label, stock: stock / 5 }))
+      : [];
+    s = saveProduct(s, { name, code, category, cost, price, stock, minStock, variants, date: at(50, 8) });
+  }
+  s = saveSupplier(s, { name: 'Grossiste Central', phone: '+237 6 90 00 00 10', date: at(50, 8) });
+  s = saveSupplier(s, { name: 'Textiles du Marché', phone: '', date: at(50, 8) });
   for (const [name, phone] of [
     ['Awa Diallo', '+237 6 90 00 00 01'], ['Jean Mbarga', '+237 6 90 00 00 02'],
     ['Fatou Ndiaye', '+237 6 90 00 00 03'], ['Paul Essomba', ''],
@@ -56,8 +63,11 @@ export function demoState(now = new Date()) {
       for (let j = 0; j < n; j++) {
         const p = s.products[pick(weighted)];
         const qty = 1 + (rand() < 0.2 ? 1 : 0);
-        if (p.stock >= qty && !items.some((i) => i.productId === p.id))
-          items.push({ productId: p.id, qty });
+        if (items.some((i) => i.productId === p.id)) continue;
+        if (hasVariants(p)) {
+          const v = pick(p.variants);
+          if (v.stock >= qty) items.push({ productId: p.id, variantId: v.id, qty });
+        } else if (p.stock >= qty) items.push({ productId: p.id, qty });
       }
       if (!items.length) continue;
       const r = rand();
@@ -74,14 +84,23 @@ export function demoState(now = new Date()) {
     }
     // Réapprovisionnement de deux produits phares il y a trois semaines
     if (day === 21) {
-      s = addMovement(s, { productId: s.products[3].id, type: 'in', qty: 40, reason: 'Livraison fournisseur', date: at(day, 8) });
-      s = addMovement(s, { productId: s.products[1].id, type: 'in', qty: 20, reason: 'Livraison fournisseur', date: at(day, 8) });
+      s = addPurchase(s, {
+        supplierId: s.suppliers[1].id, date: at(day, 8), paid: 40000, method: 'mobile',
+        items: [{ productId: s.products[3].id, qty: 40, cost: 1800 }],
+      });
+      s = addPurchase(s, {
+        supplierId: s.suppliers[0].id, date: at(day, 8), method: 'cash',
+        items: [{ productId: s.products[1].id, qty: 20, cost: 3600 }],
+      });
     }
     if (day % 30 === 15) s = addExpense(s, { category: 'Loyer', amount: 60000, note: 'Loyer boutique', date: at(day, 10) });
     if (day % 7 === 3) s = addExpense(s, { category: 'Transport', amount: 5000 + Math.floor(rand() * 4) * 1000, note: 'Marché', date: at(day, 11) });
     if (day % 30 === 5) s = addExpense(s, { category: 'Électricité / Eau', amount: 18000, date: at(day, 12) });
     if (day === 10) s = addExpense(s, { category: 'Salaires', amount: 45000, note: 'Vendeuse', date: at(day, 17) });
   }
+  // Caisse clôturée hier soir : le compte était juste, 20 000 laissés en fond de caisse
+  const closingDate = at(1, 20);
+  s = addClosing(s, { counted: cashExpected(s, closingDate).expected, kept: 20000, date: closingDate });
   // Un client a commencé à rembourser
   const debtor = s.customers.find((c) => s.sales.some((x) => x.customerId === c.id && x.total > x.paid));
   if (debtor) s = addPayment(s, { customerId: debtor.id, amount: 2000, method: 'mobile', date: at(2, 15) });

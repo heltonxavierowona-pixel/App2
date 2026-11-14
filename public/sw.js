@@ -1,5 +1,5 @@
 // Service worker minimal : réseau d'abord, cache en secours, pour utiliser l'application hors connexion.
-const CACHE = 'commerce-ai-v1';
+const CACHE = 'numera-commercial-v2';
 
 self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', (event) => {

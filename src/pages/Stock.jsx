@@ -1,11 +1,11 @@
 import React, { useMemo, useState } from 'react';
 import { useStore } from '../store.jsx';
 import { Icon, PageHead, Tabs, Empty, Modal, Field, fmtDateTime } from '../ui.jsx';
-import { addMovement, stockValue } from '../lib/logic.js';
+import { addMovement, stockValue, hasVariants } from '../lib/logic.js';
 import { velocities } from '../lib/insights.js';
 
 const TYPES = {
-  in: 'Entrée', out: 'Sortie', adjust: 'Inventaire', sale: 'Vente', return: 'Retour client',
+  in: 'Entrée', out: 'Sortie', adjust: 'Inventaire', sale: 'Vente', return: 'Retour client', purchase: 'Achat',
 };
 const REASONS = {
   in: ['Livraison fournisseur', 'Achat au marché', 'Autre'],
@@ -20,10 +20,13 @@ function MovementForm({ preset, onClose }) {
   const [productId, setProductId] = useState(preset?.productId ?? products[0]?.id ?? '');
   const [qty, setQty] = useState(preset?.qty ?? '');
   const [reason, setReason] = useState(REASONS[preset?.type ?? 'in'][0]);
+  const [variantId, setVariantId] = useState('');
   const product = products.find((p) => p.id === productId);
+  const variant = product?.variants?.find((v) => v.id === variantId);
+  const current = variant ? variant.stock : product?.stock;
   const submit = (e) => {
     e.preventDefault();
-    if (run(addMovement, { productId, type, qty, reason }, 'Stock mis à jour')) onClose();
+    if (run(addMovement, { productId, variantId, type, qty, reason }, 'Stock mis à jour')) onClose();
   };
   return (
     <Modal title="Mouvement de stock" onClose={onClose}>
@@ -31,12 +34,20 @@ function MovementForm({ preset, onClose }) {
         <Tabs value={type} onChange={(t) => { setType(t); setReason(REASONS[t][0]); }}
           options={[['in', 'Entrée'], ['out', 'Sortie'], ['adjust', 'Inventaire']]} />
         <Field label="Produit">
-          <select value={productId} onChange={(e) => setProductId(e.target.value)} required>
+          <select value={productId} onChange={(e) => { setProductId(e.target.value); setVariantId(''); }} required>
             {products.map((p) => <option key={p.id} value={p.id}>{p.name} (stock : {p.stock})</option>)}
           </select>
         </Field>
+        {hasVariants(product) && (
+          <Field label="Variante">
+            <select value={variantId} onChange={(e) => setVariantId(e.target.value)} required>
+              <option value="">— Choisir —</option>
+              {product.variants.map((v) => <option key={v.id} value={v.id}>{v.label} (stock : {v.stock})</option>)}
+            </select>
+          </Field>
+        )}
         <Field label={type === 'adjust' ? 'Stock réel compté' : 'Quantité'}
-          hint={type === 'adjust' && product ? `Stock enregistré actuellement : ${product.stock}` : null}>
+          hint={type === 'adjust' && product ? `Stock enregistré actuellement : ${current}` : null}>
           <input type="number" min="0" inputMode="numeric" required autoFocus value={qty} onChange={(e) => setQty(e.target.value)} />
         </Field>
         {type !== 'adjust' && (
@@ -53,7 +64,7 @@ function MovementForm({ preset, onClose }) {
 }
 
 export default function Stock() {
-  const { state, fmt } = useStore();
+  const { state, fmt, isOwner } = useStore();
   const [tab, setTab] = useState('levels');
   const [form, setForm] = useState(null);
   const [limit, setLimit] = useState(50);
@@ -64,13 +75,18 @@ export default function Stock() {
   );
   const movements = useMemo(() => [...state.movements].sort((a, b) => b.date.localeCompare(a.date)), [state.movements]);
   const value = stockValue(state);
-  const name = (id) => state.products.find((p) => p.id === id)?.name ?? 'Produit supprimé';
+  const name = (m) => {
+    const p = state.products.find((x) => x.id === m.productId);
+    if (!p) return 'Produit supprimé';
+    const v = p.variants?.find((x) => x.id === m.variantId);
+    return v ? `${p.name} (${v.label})` : p.name;
+  };
   const alerts = rows.filter((r) => r.product.stock <= r.product.minStock).length;
 
   return (
     <>
-      <PageHead title="Stock" sub={`Valeur du stock : ${fmt(value.cost)} au prix d'achat`}>
-        <button className="btn primary" disabled={!rows.length} onClick={() => setForm({})}><Icon name="plus" size={16} /> Mouvement</button>
+      <PageHead title="Stock" sub={isOwner ? `Valeur du stock : ${fmt(value.cost)} au prix d'achat` : 'Niveaux de stock'}>
+        {isOwner && <button className="btn primary" disabled={!rows.length} onClick={() => setForm({})}><Icon name="plus" size={16} /> Mouvement</button>}
       </PageHead>
       <Tabs value={tab} onChange={setTab}
         options={[['levels', `Niveaux${alerts ? ` (${alerts} alerte${alerts > 1 ? 's' : ''})` : ''}`], ['history', 'Historique']]} />
@@ -86,14 +102,15 @@ export default function Stock() {
               <tbody>
                 {rows.map(({ product: p, perDay, daysLeft, suggestedOrder }) => (
                   <tr key={p.id}>
-                    <td><strong>{p.name}</strong><div className="muted">{p.category}</div></td>
+                    <td><strong>{p.name}</strong>
+                      <div className="muted">{hasVariants(p) ? p.variants.map((v) => `${v.label} : ${v.stock}`).join(' · ') : p.category}</div></td>
                     <td className="r"><span className={`badge ${p.stock <= 0 ? 'crit' : p.stock <= p.minStock ? 'warn' : 'ok'}`}>{p.stock}</span></td>
                     <td className="r num">{p.minStock}</td>
                     <td className="r num">{perDay ? (perDay * 7).toFixed(1) : '—'}</td>
                     <td className={`r num ${daysLeft <= 7 ? 'neg' : ''}`}>{Number.isFinite(daysLeft) ? `${Math.round(daysLeft)} j` : '—'}</td>
                     <td className="r num">{suggestedOrder || '—'}</td>
                     <td className="r">
-                      <button className="btn small" onClick={() => setForm({ productId: p.id, type: 'in', qty: suggestedOrder || '' })}>Entrée</button>
+                      {isOwner && <button className="btn small" onClick={() => setForm({ productId: p.id, type: 'in', qty: hasVariants(p) ? '' : suggestedOrder || '' })}>Entrée</button>}
                     </td>
                   </tr>
                 ))}
@@ -111,7 +128,7 @@ export default function Stock() {
                 {movements.slice(0, limit).map((m) => (
                   <tr key={m.id}>
                     <td>{fmtDateTime(m.date)}</td>
-                    <td>{name(m.productId)}</td>
+                    <td>{name(m)}</td>
                     <td>{TYPES[m.type]}</td>
                     <td className="muted">{m.reason}</td>
                     <td className={`r num ${m.qty < 0 ? 'neg' : 'pos'}`}>{m.qty > 0 ? '+' : ''}{m.qty}</td>

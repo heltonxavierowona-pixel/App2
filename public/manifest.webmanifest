@@ -1,12 +1,12 @@
 {
-  "name": "COMMERCE AI",
-  "short_name": "Commerce AI",
+  "name": "NUMERA COMMERCIAL AI",
+  "short_name": "Numera Commercial",
   "description": "Le gestionnaire intelligent des petits commerces",
   "lang": "fr",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#f5f3ee",
-  "theme_color": "#0f5c4d",
+  "background_color": "#f2f4f3",
+  "theme_color": "#0b5f4a",
   "icons": [{ "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
 }

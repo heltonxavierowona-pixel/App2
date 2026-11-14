@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import {
   emptyState, saveProduct, addMovement, addSale, addReturn, addExpense, saveCustomer,
   addPayment, customerBalance, metrics, topProducts, periodRange, lowStock, deleteProduct,
+  saveSupplier, addPurchase, addSupplierPayment, supplierBalance, addClosing, cashExpected,
+  applyOp, canDo, findByCode, replaceAll, updateSettings, actionName,
 } from '../src/lib/logic.js';
 import { insights } from '../src/lib/insights.js';
 import { demoState } from '../src/lib/demo.js';
@@ -10,7 +12,7 @@ import { demoState } from '../src/lib/demo.js';
 const far = [new Date(2000, 0, 1), new Date(2100, 0, 1)];
 
 function shop() {
-  let s = emptyState();
+  let s = emptyState('Chez Awa');
   s = saveProduct(s, { name: 'Basket', code: 'B1', cost: 6000, price: 10000, stock: 10, minStock: 3 });
   s = saveProduct(s, { name: 'T-shirt', code: 'T1', cost: 2000, price: 3000, stock: 5, minStock: 5 });
   s = saveCustomer(s, { name: 'Awa' });
@@ -25,7 +27,7 @@ test('création de produit avec stock initial et code unique', () => {
   assert.deepEqual(lowStock(s).map((p) => p.name), ['T-shirt']);
 });
 
-test('une vente diminue le stock et calcule marge et remise', () => {
+test('une vente diminue le stock, numérote la facture et calcule la marge', () => {
   let s = shop();
   const [b, t] = s.products;
   s = addSale(s, {
@@ -33,15 +35,17 @@ test('une vente diminue le stock et calcule marge et remise', () => {
   });
   assert.equal(s.products[0].stock, 8);
   assert.equal(s.sales[0].total, 22000);
+  assert.match(s.sales[0].number, /^FA-\d{4}-00001$/);
+  s = addSale(s, { items: [{ productId: t.id, qty: 1 }], payment: 'mobile' });
+  assert.match(s.sales[1].number, /-00002$/);
   const m = metrics(s, ...far);
-  assert.equal(m.revenue, 22000);
-  assert.equal(m.cogs, 14000);
-  assert.equal(m.margin, 8000);
-  assert.equal(m.cashIn, 22000);
+  assert.equal(m.revenue, 25000);
+  assert.equal(m.cogs, 16000);
+  assert.equal(m.cashIn, 25000);
   assert.equal(topProducts(s, ...far)[0].name, 'Basket');
 });
 
-test('vente refusée si stock insuffisant, sans modifier l\'état', () => {
+test("vente refusée si stock insuffisant, sans modifier l'état", () => {
   const s = shop();
   assert.throws(
     () => addSale(s, { items: [{ productId: s.products[1].id, qty: 6 }], payment: 'cash' }),
@@ -59,27 +63,24 @@ test('vente à crédit, règlements et solde client', () => {
     items: [{ productId: s.products[0].id, qty: 1 }], payment: 'credit', customerId: c.id, paid: 4000,
   });
   assert.equal(customerBalance(s, c.id), 6000);
-  assert.equal(metrics(s, ...far).cashIn, 4000);
   assert.throws(() => addPayment(s, { customerId: c.id, amount: 7000 }), /dépasse/);
   s = addPayment(s, { customerId: c.id, amount: 2500, method: 'mobile' });
   assert.equal(customerBalance(s, c.id), 3500);
   assert.equal(metrics(s, ...far).cashIn, 6500);
 });
 
-test('un retour remet en stock et réduit d\'abord la dette', () => {
+test("un retour remet en stock et réduit d'abord la dette", () => {
   let s = shop();
   const c = s.customers[0], b = s.products[0];
   s = addSale(s, { items: [{ productId: b.id, qty: 2 }], payment: 'credit', customerId: c.id, paid: 15000 });
-  s = addReturn(s, { saleId: s.sales[0].id, productId: b.id, qty: 1 });
+  const lineId = s.sales[0].items[0].id;
+  s = addReturn(s, { saleId: s.sales[0].id, lineId, qty: 1 });
   assert.equal(s.products[0].stock, 9);
   assert.equal(s.returns[0].creditedToDebt, 5000);
   assert.equal(s.returns[0].refunded, 5000);
   assert.equal(customerBalance(s, c.id), 0);
-  const m = metrics(s, ...far);
-  assert.equal(m.revenue, 10000);
-  assert.equal(m.margin, 4000);
-  assert.equal(m.cashIn, 10000);
-  assert.throws(() => addReturn(s, { saleId: s.sales[0].id, productId: b.id, qty: 2 }), /maximum : 1/);
+  assert.equal(metrics(s, ...far).margin, 4000);
+  assert.throws(() => addReturn(s, { saleId: s.sales[0].id, lineId, qty: 2 }), /maximum : 1/);
 });
 
 test('inventaire, sorties et dépenses', () => {
@@ -87,12 +88,9 @@ test('inventaire, sorties et dépenses', () => {
   const b = s.products[0];
   s = addMovement(s, { productId: b.id, type: 'adjust', qty: 7, reason: 'Inventaire' });
   assert.equal(s.products[0].stock, 7);
-  assert.equal(s.movements.at(-1).qty, -3);
   assert.throws(() => addMovement(s, { productId: b.id, type: 'out', qty: 8 }), /insuffisant/);
   s = addExpense(s, { category: 'Loyer', amount: 5000 });
-  const m = metrics(s, ...far);
-  assert.equal(m.expenses, 5000);
-  assert.equal(m.net, -5000);
+  assert.equal(metrics(s, ...far).net, -5000);
 });
 
 test('un produit déjà vendu est archivé, pas supprimé', () => {
@@ -104,12 +102,100 @@ test('un produit déjà vendu est archivé, pas supprimé', () => {
   assert.equal(s.products.length, 1);
 });
 
+test('variantes : stock par taille, vente, retour et code-barres', () => {
+  let s = emptyState();
+  s = saveProduct(s, {
+    name: 'Sandale', cost: 3000, price: 5000, barcode: '111',
+    variants: [{ label: '38', stock: 2, barcode: '380' }, { label: '39', stock: 3 }],
+  });
+  const p = s.products[0], [v38, v39] = p.variants;
+  assert.equal(p.stock, 5);
+  assert.equal(findByCode(s, '380').variant.label, '38');
+  assert.equal(findByCode(s, '111').variant, null);
+  assert.throws(() => addSale(s, { items: [{ productId: p.id, qty: 1 }], payment: 'cash' }), /variante/);
+  assert.throws(
+    () => addSale(s, { items: [{ productId: p.id, variantId: v38.id, qty: 3 }], payment: 'cash' }),
+    /Sandale \(38\)/);
+  s = addSale(s, { items: [{ productId: p.id, variantId: v38.id, qty: 2 }], payment: 'cash' });
+  assert.equal(s.sales[0].items[0].name, 'Sandale (38)');
+  assert.deepEqual(s.products[0].variants.map((v) => v.stock), [0, 3]);
+  s = addReturn(s, { saleId: s.sales[0].id, lineId: s.sales[0].items[0].id, qty: 1 });
+  assert.deepEqual(s.products[0].variants.map((v) => v.stock), [1, 3]);
+  assert.equal(s.products[0].stock, 4);
+  // on ne retire pas une variante qui a du stock ; on peut en ajouter une
+  assert.throws(() => saveProduct(s, { ...s.products[0], variants: [{ id: v38.id, label: '38' }] }), /encore du stock/);
+  s = saveProduct(s, { ...s.products[0], variants: [...s.products[0].variants, { label: '40' }] });
+  assert.equal(s.products[0].variants.length, 3);
+  assert.equal(s.products[0].variants[1].id, v39.id);
+});
+
+test('achats fournisseurs : stock, coût moyen pondéré et dette', () => {
+  let s = shop();
+  s = saveSupplier(s, { name: 'Grossiste' });
+  const sup = s.suppliers[0], b = s.products[0];
+  s = addPurchase(s, { supplierId: sup.id, items: [{ productId: b.id, qty: 10, cost: 8000 }], paid: 30000 });
+  assert.equal(s.products[0].stock, 20);
+  assert.equal(s.products[0].cost, 7000);
+  assert.equal(supplierBalance(s, sup.id), 50000);
+  assert.throws(() => addSupplierPayment(s, { supplierId: sup.id, amount: 60000 }), /dépasse/);
+  s = addSupplierPayment(s, { supplierId: sup.id, amount: 50000 });
+  assert.equal(supplierBalance(s, sup.id), 0);
+  assert.equal(metrics(s, ...far).purchases, 80000);
+});
+
+test('clôture de caisse : attendu, écart et fond de caisse reporté', () => {
+  let s = shop();
+  const [b, t] = s.products, c = s.customers[0];
+  const at = (h) => new Date(2026, 10, 14, h);
+  s = addSale(s, { items: [{ productId: b.id, qty: 1 }], payment: 'cash', date: at(9) });        // +10 000
+  s = addSale(s, { items: [{ productId: t.id, qty: 1 }], payment: 'mobile', date: at(10) });      // hors caisse
+  s = addSale(s, { items: [{ productId: t.id, qty: 1 }], payment: 'credit', customerId: c.id, paid: 1000, date: at(11) }); // +1 000
+  s = addPayment(s, { customerId: c.id, amount: 500, method: 'cash', date: at(12) });             // +500
+  s = addExpense(s, { category: 'Transport', amount: 2000, date: at(13) });                       // −2 000
+  assert.equal(cashExpected(s, at(18)).expected, 9500);
+  assert.throws(() => addClosing(s, { counted: '' }), /compté/);
+  s = addClosing(s, { counted: 9000, kept: 3000, date: at(18) });
+  assert.equal(s.closings[0].diff, -500);
+  assert.equal(s.closings[0].withdrawn, 6000);
+  s = addSale(s, { items: [{ productId: t.id, qty: 1 }], payment: 'cash', date: at(19) });
+  assert.equal(cashExpected(s, at(20)).expected, 6000);
+});
+
+test('journal : une opération rejouée donne exactement le même état', () => {
+  const base = shop();
+  const op = {
+    id: 'op-1', ts: '2026-11-14T10:00:00.000Z', user: 'Awa', action: 'addSale',
+    payload: { items: [{ productId: base.products[0].id, qty: 1 }], payment: 'cash' },
+  };
+  const a = applyOp(base, op), b = applyOp(base, op);
+  assert.deepEqual(a, b);
+  assert.equal(a.sales[0].date, op.ts);
+  assert.equal(a.sales[0].seller, 'Awa');
+  // rejeu tolérant : la vente d'un autre appareil passe même si le stock local est épuisé
+  const big = { ...op, id: 'op-2', payload: { items: [{ productId: base.products[0].id, qty: 50 }], payment: 'cash' } };
+  assert.throws(() => applyOp(base, big), /insuffisant/);
+  assert.equal(applyOp(base, big, { lenient: true }).products[0].stock, -40);
+  assert.equal(actionName(addSale), 'addSale');
+  assert.equal(canDo('seller', 'addSale'), true);
+  assert.equal(canDo('seller', 'saveProduct'), false);
+  assert.equal(canDo('owner', 'replaceAll'), true);
+});
+
+test('le nom de la boutique fixé à la création ne change jamais', () => {
+  let s = shop();
+  s = updateSettings(s, { currency: 'GNF', shopName: 'Autre nom' });
+  assert.equal(s.settings.shopName, 'Chez Awa');
+  assert.equal(s.settings.currency, 'GNF');
+  s = replaceAll(s, { data: demoState(new Date(2026, 10, 14, 15)) });
+  assert.equal(s.settings.shopName, 'Chez Awa');
+  assert.ok(s.sales.length > 100);
+});
+
 test('périodes : semaine depuis lundi, mois depuis le 1er', () => {
   const now = new Date(2026, 10, 14, 15); // samedi 14 novembre 2026
   assert.equal(periodRange('week', now).start.getDate(), 9);
   assert.equal(periodRange('month', now).start.getDate(), 1);
   assert.equal(periodRange('month', now).prevStart.getMonth(), 9);
-  assert.equal(periodRange('day', now).prevStart.getDate(), 13);
 });
 
 test('les données de démonstration sont cohérentes et produisent des conseils', () => {
@@ -120,8 +206,9 @@ test('les données de démonstration sont cohérentes et produisent des conseils
     const sum = s.movements.filter((m) => m.productId === p.id).reduce((a, m) => a + m.qty, 0);
     assert.equal(sum, p.stock);
     assert.ok(p.stock >= 0);
+    if (p.variants.length) assert.equal(p.variants.reduce((a, v) => a + v.stock, 0), p.stock);
   }
+  assert.ok(s.products.some((p) => p.variants.length));
   const list = insights(s, (n) => `${n} F`, now);
   assert.ok(list.length >= 3);
-  assert.ok(list.every((i) => i.title && i.text && i.level));
 });

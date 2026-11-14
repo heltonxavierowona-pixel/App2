@@ -1,11 +1,11 @@
 import React, { useMemo, useState } from 'react';
 import { useStore } from '../store.jsx';
 import { Icon, PageHead, Empty, Modal, Field, fmtDate, todayInput, fromInputDate } from '../ui.jsx';
-import { addExpense, deleteExpense, EXPENSE_CATEGORIES, periodRange } from '../lib/logic.js';
+import { addExpense, deleteExpense, EXPENSE_CATEGORIES, periodRange, PAY_NOW } from '../lib/logic.js';
 
 function ExpenseForm({ onClose }) {
   const { run } = useStore();
-  const [f, setF] = useState({ category: EXPENSE_CATEGORIES[0], amount: '', note: '', date: todayInput() });
+  const [f, setF] = useState({ category: EXPENSE_CATEGORIES[0], amount: '', note: '', date: todayInput(), method: 'cash' });
   const set = (k) => (e) => setF({ ...f, [k]: e.target.value });
   const submit = (e) => {
     e.preventDefault();
@@ -23,6 +23,11 @@ function ExpenseForm({ onClose }) {
           </Field>
           <Field label="Date"><input type="date" max={todayInput()} value={f.date} onChange={set('date')} /></Field>
         </div>
+        <Field label="Payé par" hint="Les dépenses en espèces sont déduites de la caisse à la clôture">
+          <select value={f.method} onChange={set('method')}>
+            {Object.entries(PAY_NOW).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+          </select>
+        </Field>
         <Field label="Note (facultatif)"><input value={f.note} onChange={set('note')} placeholder="ex. facture d'octobre" /></Field>
         <button className="btn primary big" type="submit">Enregistrer</button>
       </form>
