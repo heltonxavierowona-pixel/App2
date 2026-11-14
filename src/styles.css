@@ -418,3 +418,22 @@ code { font-size: .9em; background: var(--surface-2); padding: 1px 5px; border-r
   .cart { max-height: calc(100vh - 32px); overflow-y: auto; }
   .cart > .btn.big { position: sticky; bottom: 0; box-shadow: 0 -10px 0 var(--surface), 0 8px 0 var(--surface); }
 }
+
+/* ---------- Finition visuelle (numera-commercial-ai-upgrade.css, fournie par NUMERA GROUPES) ---------- */
+:root{--radius:14px;--shadow:0 8px 24px rgba(20,32,28,.055);--bg:#f4f7f5;--surface-2:#edf3ef;--primary:#087a59;--primary-hover:#066348;--primary-soft:#e2f2ea}
+body{background:radial-gradient(ellipse at 92% 0%,rgba(8,122,89,.07),transparent 34%),var(--bg)}
+.sidebar{background:linear-gradient(180deg,#fff 0%,#f7faf8 100%);border-right-color:#e4ebe6}
+.sidebar nav button{border-radius:10px;padding:11px 12px}
+.sidebar nav button.on{box-shadow:inset 3px 0 #0a9b6b}
+.content{max-width:1440px;padding:32px clamp(18px,3vw,44px) 52px}
+.card,.stat{border-radius:16px;box-shadow:var(--shadow);border-color:#e3ebe5}
+.card{padding:20px}.stat{padding:17px 18px}.stat strong{letter-spacing:-.035em}
+.btn{border-radius:10px;transition:transform .18s,box-shadow .18s,background .18s}
+.btn:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 6px 14px rgba(11,95,74,.12)}
+input,select{border-radius:10px}.tabs{border-radius:10px}.tabs button.on{border-radius:8px}
+@media(max-width:760px){.content{padding:20px 14px 36px}.grid-2,.form-grid{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+
+/* Ajustements pour que la finition cohabite avec la barre du bas sur téléphone et avec l'impression. */
+@media (max-width: 860px) { .content { padding-bottom: calc(88px + env(safe-area-inset-bottom)); } }
+@media print { body { background: #fff; } }
