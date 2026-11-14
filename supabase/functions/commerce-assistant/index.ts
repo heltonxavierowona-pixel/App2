@@ -36,7 +36,7 @@ Deno.serve(async (req) => {
   const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!, {
     global: { headers: { Authorization: req.headers.get("Authorization") ?? "" } },
   });
-  const { data: role, error: roleError } = await supabase.rpc("my_role", { shop: body.shopId });
+  const { data: role, error: roleError } = await supabase.rpc("commerce_role", { shop: body.shopId });
   if (roleError || role !== "owner") return json({ error: "Accès refusé." }, 403);
 
   const client = new Anthropic({ apiKey });

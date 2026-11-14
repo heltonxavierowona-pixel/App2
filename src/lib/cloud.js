@@ -57,14 +57,14 @@ export const signOut = () => guard(async () => { await (await client()).auth.sig
 
 export const listShops = (email) => guard(async () => {
   const sb = await client();
-  const rows = check(await sb.from('shop_members')
-    .select('role, shops(id, name, currency)').eq('email', email.toLowerCase()));
-  return rows.filter((r) => r.shops).map((r) => ({ ...r.shops, role: r.role }));
+  const rows = check(await sb.from('commerce_members')
+    .select('role, shop:commerce_shops(id, name, currency)').eq('email', email.toLowerCase()));
+  return rows.filter((r) => r.shop).map((r) => ({ ...r.shop, role: r.role }));
 });
 
 export const createShop = (name, currency) => guard(async () => {
   const sb = await client();
-  const shop = check(await sb.rpc('create_shop', { shop_name: name, shop_currency: currency }));
+  const shop = check(await sb.rpc('commerce_create_shop', { shop_name: name, shop_currency: currency }));
   return { id: shop.id, name: shop.name, currency: shop.currency, role: 'owner' };
 });
 
@@ -75,7 +75,7 @@ export const clearPendingShop = () => guard(async () => {
 
 export const pushOp = (shopId, op) => guard(async () => {
   const sb = await client();
-  const { error } = await sb.from('shop_ops').insert({
+  const { error } = await sb.from('commerce_ops').insert({
     id: op.id, shop_id: shopId, user_name: op.user, action: op.action, payload: op.payload, ts: op.ts,
   });
   if (error && error.code !== '23505') throw translate(error); // 23505 : déjà envoyée
@@ -83,7 +83,7 @@ export const pushOp = (shopId, op) => guard(async () => {
 
 export const pullOps = (shopId, afterSeq) => guard(async () => {
   const sb = await client();
-  const rows = check(await sb.from('shop_ops')
+  const rows = check(await sb.from('commerce_ops')
     .select('seq, id, user_name, action, payload, ts')
     .eq('shop_id', shopId).gt('seq', afterSeq).order('seq').limit(500));
   return rows.map((r) => ({ seq: r.seq, id: r.id, user: r.user_name, action: r.action, payload: r.payload, ts: r.ts }));
@@ -93,29 +93,29 @@ export async function subscribeOps(shopId, onChange) {
   const sb = await client();
   const channel = sb.channel(`ops-${shopId}`)
     .on('postgres_changes',
-      { event: 'INSERT', schema: 'public', table: 'shop_ops', filter: `shop_id=eq.${shopId}` }, onChange)
+      { event: 'INSERT', schema: 'public', table: 'commerce_ops', filter: `shop_id=eq.${shopId}` }, onChange)
     .subscribe();
   return () => { sb.removeChannel(channel); };
 }
 
 export const listMembers = (shopId) => guard(async () => {
   const sb = await client();
-  return check(await sb.from('shop_members').select('email, role, created_at').eq('shop_id', shopId).order('created_at'));
+  return check(await sb.from('commerce_members').select('email, role, created_at').eq('shop_id', shopId).order('created_at'));
 });
 
 export const inviteSeller = (shopId, email) => guard(async () => {
   const sb = await client();
-  check(await sb.from('shop_members').insert({ shop_id: shopId, email: email.trim().toLowerCase(), role: 'seller' }));
+  check(await sb.from('commerce_members').insert({ shop_id: shopId, email: email.trim().toLowerCase(), role: 'seller' }));
 });
 
 export const removeMember = (shopId, email) => guard(async () => {
   const sb = await client();
-  check(await sb.from('shop_members').delete().eq('shop_id', shopId).eq('email', email));
+  check(await sb.from('commerce_members').delete().eq('shop_id', shopId).eq('email', email));
 });
 
 export const askAssistant = (shopId, question, context) => guard(async () => {
   const sb = await client();
-  const { data, error } = await sb.functions.invoke('assistant', { body: { shopId, question, context } });
+  const { data, error } = await sb.functions.invoke('commerce-assistant', { body: { shopId, question, context } });
   if (error) {
     let detail = null;
     try { detail = await error.context?.json?.(); } catch { /* pas de corps JSON */ }

@@ -22,10 +22,13 @@ dépenses, dettes et rentabilité estimée, depuis un téléphone ou un ordinate
 - **Sur un appareil** (par défaut) : aucune configuration, les données restent sur l'appareil
   (IndexedDB), l'application fonctionne hors connexion.
 - **En ligne** : comptes par e-mail, synchronisation entre appareils, équipe, assistant par IA.
-  Nécessite un projet Supabase :
-  1. exécuter `supabase/migrations/001_init.sql` sur le projet ;
-  2. déployer la fonction `supabase/functions/assistant` et définir le secret `ANTHROPIC_API_KEY` ;
-  3. définir `VITE_SUPABASE_URL` et `VITE_SUPABASE_KEY` (clé publique) au moment du build.
+  Le service en ligne est le projet Supabase `numera-import-export` (partagé avec l'application
+  import-export ; tous les objets de cette application sont préfixés `commerce_`) :
+  - schéma et règles d'accès : `supabase/migrations/001_init.sql` (déjà appliqué) ;
+  - assistant : fonction `supabase/functions/commerce-assistant` (déjà déployée) ; elle s'active
+    en définissant le secret `ANTHROPIC_API_KEY` dans le projet ;
+  - l'adresse et la clé publique sont dans `src/config.js` (`VITE_SUPABASE_URL` /
+    `VITE_SUPABASE_KEY` permettent d'en changer au build).
 
 ## Démarrer
 
