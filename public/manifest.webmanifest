@@ -1,0 +1,12 @@
+{
+  "name": "COMMERCE AI",
+  "short_name": "Commerce AI",
+  "description": "Le gestionnaire intelligent des petits commerces",
+  "lang": "fr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f5f3ee",
+  "theme_color": "#0f5c4d",
+  "icons": [{ "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
+}
