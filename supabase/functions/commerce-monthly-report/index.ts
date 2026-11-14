@@ -7,9 +7,9 @@
 // à une version figée (identifiant de commit). Après une modification de src/lib/logic.js,
 // overview.js ou monthly-email.js, mettre à jour cet identifiant et redéployer la fonction.
 import { createClient } from "npm:@supabase/supabase-js@2";
-import { applyOp, emptyState } from "https://raw.githubusercontent.com/heltonxavierowona-pixel/App2/ac7d2f2544c3da71181eacb053a520406b4febc1/src/lib/logic.js";
-import { previousMonthKey } from "https://raw.githubusercontent.com/heltonxavierowona-pixel/App2/ac7d2f2544c3da71181eacb053a520406b4febc1/src/lib/overview.js";
-import { buildEmails } from "https://raw.githubusercontent.com/heltonxavierowona-pixel/App2/ac7d2f2544c3da71181eacb053a520406b4febc1/src/lib/monthly-email.js";
+import { applyOp, emptyState } from "https://raw.githubusercontent.com/heltonxavierowona-pixel/App2/5e2b378d1722a3ede200bcf080eb78d8dec6633a/src/lib/logic.js";
+import { previousMonthKey } from "https://raw.githubusercontent.com/heltonxavierowona-pixel/App2/5e2b378d1722a3ede200bcf080eb78d8dec6633a/src/lib/overview.js";
+import { buildEmails } from "https://raw.githubusercontent.com/heltonxavierowona-pixel/App2/5e2b378d1722a3ede200bcf080eb78d8dec6633a/src/lib/monthly-email.js";
 
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
