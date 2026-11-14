@@ -20,8 +20,9 @@ dépenses, dettes et rentabilité estimée, depuis un téléphone ou un ordinate
 - **Rapports mensuels par e-mail** : chaque gérant reçoit le rapport de sa boutique, chaque patron
   un rapport général. Fonction `supabase/functions/commerce-monthly-report`, planifiée par
   `supabase/migrations/002_…sql` ; elle s'active avec les secrets `BREVO_API_KEY` et
-  `REPORT_SENDER_EMAIL`. Après une modification de `src/lib/logic.js`, `overview.js` ou
-  `monthly-email.js`, lancer `npm run sync:functions` puis redéployer la fonction.
+  `REPORT_SENDER_EMAIL`. Elle charge la logique métier depuis ce dépôt à une version figée :
+  après une modification de `src/lib/logic.js`, `overview.js` ou `monthly-email.js`, mettre à jour
+  l'identifiant de commit en tête de la fonction et la redéployer.
 
 ## Deux modes
 

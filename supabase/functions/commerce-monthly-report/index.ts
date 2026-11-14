@@ -2,10 +2,14 @@
 // Appelée par une tâche planifiée au début de chaque mois : rejoue le journal de chaque boutique,
 // puis envoie le rapport de la boutique à ses gérants et un rapport général à chaque patron.
 // Sans danger à appeler plusieurs fois : chaque destinataire ne reçoit qu'un rapport par mois.
+//
+// La logique métier est la même que celle de l'application : elle est chargée depuis le dépôt,
+// à une version figée (identifiant de commit). Après une modification de src/lib/logic.js,
+// overview.js ou monthly-email.js, mettre à jour cet identifiant et redéployer la fonction.
 import { createClient } from "npm:@supabase/supabase-js@2";
-import { applyOp, emptyState } from "./logic.js";
-import { previousMonthKey } from "./overview.js";
-import { buildEmails } from "./monthly-email.js";
+import { applyOp, emptyState } from "https://raw.githubusercontent.com/heltonxavierowona-pixel/App2/ac7d2f2544c3da71181eacb053a520406b4febc1/src/lib/logic.js";
+import { previousMonthKey } from "https://raw.githubusercontent.com/heltonxavierowona-pixel/App2/ac7d2f2544c3da71181eacb053a520406b4febc1/src/lib/overview.js";
+import { buildEmails } from "https://raw.githubusercontent.com/heltonxavierowona-pixel/App2/ac7d2f2544c3da71181eacb053a520406b4febc1/src/lib/monthly-email.js";
 
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
@@ -13,7 +17,7 @@ const json = (body: unknown, status = 200) =>
 Deno.serve(async () => {
   const apiKey = Deno.env.get("BREVO_API_KEY");
   const sender = Deno.env.get("REPORT_SENDER_EMAIL");
-  if (!apiKey || !sender) return json({ skipped: "not_configured" });
+  if (!apiKey || !sender) return json({ skipped: "not_configured", logic_loaded: typeof applyOp === "function" && typeof buildEmails === "function" });
 
   // Fuseau des boutiques par rapport à UTC (1 = Afrique de l'Ouest et centrale).
   const offset = Number(Deno.env.get("REPORT_UTC_OFFSET_HOURS") ?? "1");
