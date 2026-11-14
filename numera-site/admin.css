@@ -70,3 +70,6 @@ fieldset.field legend { font-size: 0.88rem; font-weight: 600; padding: 0; margin
   .prow__actions { grid-column: 1 / -1; }
   .ahead .btn { width: 100%; }
 }
+
+/* La refonte agrandit tous les boutons : on garde les petits boutons de la barre. */
+.abar .btn--sm { padding: 9px 18px; box-shadow: none; }
