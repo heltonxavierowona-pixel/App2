@@ -7,6 +7,7 @@
 // à une version figée (identifiant de commit). Après une modification de src/lib/logic.js,
 // overview.js ou monthly-email.js, mettre à jour cet identifiant et redéployer la fonction.
 import { createClient } from "npm:@supabase/supabase-js@2";
+import nodemailer from "npm:nodemailer@6";
 import { applyOp, emptyState } from "https://raw.githubusercontent.com/heltonxavierowona-pixel/App2/5e2b378d1722a3ede200bcf080eb78d8dec6633a/src/lib/logic.js";
 import { previousMonthKey } from "https://raw.githubusercontent.com/heltonxavierowona-pixel/App2/5e2b378d1722a3ede200bcf080eb78d8dec6633a/src/lib/overview.js";
 import { buildEmails } from "https://raw.githubusercontent.com/heltonxavierowona-pixel/App2/5e2b378d1722a3ede200bcf080eb78d8dec6633a/src/lib/monthly-email.js";
@@ -15,9 +16,10 @@ const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
 
 Deno.serve(async () => {
-  const apiKey = Deno.env.get("BREVO_API_KEY");
-  const sender = Deno.env.get("REPORT_SENDER_EMAIL");
-  if (!apiKey || !sender) return json({ skipped: "not_configured", logic_loaded: typeof applyOp === "function" && typeof buildEmails === "function" });
+  // Envoi par Gmail : adresse Google et mot de passe d'application (jamais le mot de passe du compte).
+  const user = Deno.env.get("GMAIL_USER");
+  const pass = Deno.env.get("GMAIL_APP_PASSWORD")?.replace(/\s+/g, "");
+  if (!user || !pass) return json({ skipped: "not_configured", logic_loaded: typeof applyOp === "function" && typeof buildEmails === "function" });
 
   // Fuseau des boutiques par rapport à UTC (1 = Afrique de l'Ouest et centrale).
   const offset = Number(Deno.env.get("REPORT_UTC_OFFSET_HOURS") ?? "1");
@@ -60,6 +62,8 @@ Deno.serve(async () => {
     shops.push({ ...shop, state, owners: of("owner"), managers: of("manager") });
   }
 
+  // Port 465 (connexion chiffrée) : les ports 25 et 587 sont fermés pour les fonctions Supabase.
+  const mailer = nodemailer.createTransport({ host: "smtp.gmail.com", port: 465, secure: true, auth: { user, pass } });
   let sent = 0;
   const failed: string[] = [];
   for (const email of buildEmails(shops, month, offset)) {
@@ -67,19 +71,16 @@ Deno.serve(async () => {
     // On réserve l'envoi avant d'envoyer : deux appels simultanés ne produisent qu'un e-mail.
     const claim = await db.from("commerce_report_log").insert({ month, recipient: email.to, scope: email.scope });
     if (claim.error) continue;
-    const res = await fetch("https://api.brevo.com/v3/smtp/email", {
-      method: "POST",
-      headers: { "api-key": apiKey, "Content-Type": "application/json", Accept: "application/json" },
-      body: JSON.stringify({
-        sender: { email: sender, name: "NUMERA COMMERCIAL AI" },
-        to: [{ email: email.to }],
+    try {
+      await mailer.sendMail({
+        from: { name: "NUMERA COMMERCIAL AI", address: user },
+        to: email.to,
         subject: email.subject,
-        htmlContent: email.html,
-      }),
-    });
-    if (res.ok) sent += 1;
-    else {
-      failed.push(`${res.status}`);
+        html: email.html,
+      });
+      sent += 1;
+    } catch (error) {
+      failed.push(String((error as { responseCode?: number; code?: string }).responseCode ?? (error as { code?: string }).code ?? "erreur"));
       await db.from("commerce_report_log").delete().match({ month, recipient: email.to, scope: email.scope });
     }
   }
