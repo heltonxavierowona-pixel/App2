@@ -1,5 +1,5 @@
 import React from 'react';
-import { PAYMENTS, returnedQty } from '../lib/logic.js';
+import { PAYMENTS, returnedQty, fmtQty } from '../lib/logic.js';
 import { APP_NAME } from '../config.js';
 
 const dateLong = (d) => new Date(d).toLocaleString('fr-FR', {
@@ -40,9 +40,9 @@ export default function Invoice({ sale, state, fmt }) {
             return (
               <tr key={i.id}>
                 <td>{i.name}{back > 0 && <em> — {back} retourné(s)</em>}</td>
-                <td className="r">{i.qty}</td>
+                <td className="r">{fmtQty(i.qty, i.unit)}</td>
                 <td className="r">{fmt(i.price)}</td>
-                <td className="r">{fmt(i.qty * i.price)}</td>
+                <td className="r">{fmt(Math.round(i.qty * i.price))}</td>
               </tr>
             );
           })}
@@ -53,6 +53,7 @@ export default function Invoice({ sale, state, fmt }) {
         {sale.discount > 0 && <><dt>Sous-total</dt><dd>{fmt(sale.subtotal)}</dd><dt>Remise</dt><dd>−{fmt(sale.discount)}</dd></>}
         <dt className="grand">Total</dt><dd className="grand">{fmt(sale.total)}</dd>
         <dt>Mode de paiement</dt><dd>{PAYMENTS[sale.payment]}</dd>
+        {sale.received != null && <><dt>Reçu</dt><dd>{fmt(sale.received)}</dd><dt>Rendu</dt><dd>{fmt(sale.change)}</dd></>}
         {sale.total > sale.paid && <><dt>Versé</dt><dd>{fmt(sale.paid)}</dd><dt>Reste à payer</dt><dd>{fmt(sale.total - sale.paid)}</dd></>}
         {refund > 0 && <><dt>Retours</dt><dd>−{fmt(refund)}</dd></>}
       </dl>

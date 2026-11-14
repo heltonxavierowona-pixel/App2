@@ -380,3 +380,41 @@ tr.strong td { font-weight: 600; }
   .page-head .actions { flex-wrap: wrap; }
 }
 .select.auto, select.auto { width: auto; flex: 0 0 auto; }
+
+/* ---------- Mode caisse ---------- */
+kbd { font: inherit; font-size: .78em; padding: 1px 6px; border: 1px solid var(--line); border-radius: 4px; background: var(--surface-2); color: var(--muted); }
+.btn.primary kbd { background: transparent; border-color: rgba(255, 255, 255, .5); color: inherit; }
+.keys { margin-top: 10px; }
+.cart-name { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.cart-name .icon-btn { padding: 3px; }
+.qty-input { width: 92px; min-height: 34px; padding: 5px 8px; text-align: right; }
+.cash-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: end; }
+.change-box { display: grid; gap: 2px; padding: 8px 12px; border-radius: 5px; background: var(--ok-bg); min-height: 42px; }
+.change-box span { font-size: .8rem; font-weight: 600; color: var(--muted); }
+.change-box strong { font-size: 1.2rem; font-variant-numeric: tabular-nums; }
+.change-box.neg { background: var(--crit-bg); color: var(--crit); }
+.change strong { font-size: 1.25rem; }
+details.more > summary { cursor: pointer; font-size: .85rem; font-weight: 600; color: var(--muted); }
+details.more > * + * { margin-top: 8px; }
+code { font-size: .9em; background: var(--surface-2); padding: 1px 5px; border-radius: 4px; }
+@media (min-width: 861px) { .tiles { max-height: calc(100vh - 300px); overflow-y: auto; align-content: start; } }
+@media (max-width: 860px) { .keys { display: none; } }
+
+/* Ticket de caisse 80 mm */
+.ticket { page: ticket; width: 72mm; color: #000; font: 10pt/1.35 'IBM Plex Sans', Arial, sans-serif; }
+.ticket h1 { font-size: 13pt; text-align: center; }
+.ticket p { margin: 0; }
+.ticket .c { text-align: center; }
+.ticket hr { border: 0; border-top: 1px dashed #000; margin: 5pt 0; }
+.ticket .t-line { margin-bottom: 3pt; }
+.ticket .t-line > span { display: block; }
+.ticket .t-row { display: flex; justify-content: space-between; gap: 8pt; font-variant-numeric: tabular-nums; }
+.ticket .t-total { font-size: 13pt; font-weight: 600; }
+.ticket .t-brand { font-size: 7.5pt; margin-top: 4pt; }
+@page ticket { size: 80mm 200mm; margin: 3mm 4mm; }
+.ticket .t-line > .t-row { display: flex; }
+/* Sur un écran de caisse, le bouton « Valider » reste toujours visible en bas du panier. */
+@media (min-width: 861px) {
+  .cart { max-height: calc(100vh - 32px); overflow-y: auto; }
+  .cart > .btn.big { position: sticky; bottom: 0; box-shadow: 0 -10px 0 var(--surface), 0 8px 0 var(--surface); }
+}

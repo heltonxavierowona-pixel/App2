@@ -83,7 +83,7 @@ function PurchaseForm({ onClose }) {
                     {p.variants.map((v) => <option key={v.id} value={v.id}>{v.label}</option>)}
                   </select>
                 )}
-                <input aria-label="Quantité" type="number" min="1" inputMode="numeric" placeholder="Qté" value={l.qty}
+                <input aria-label="Quantité" type="number" min="0" step="any" inputMode="decimal" placeholder="Qté" value={l.qty}
                   required={Boolean(l.productId)} onChange={(e) => setLine(i, { qty: e.target.value })} />
                 <input aria-label="Prix d'achat unitaire" type="number" min="0" inputMode="numeric" placeholder="Prix d'achat" value={l.cost}
                   required={Boolean(l.productId)} onChange={(e) => setLine(i, { cost: e.target.value })} />

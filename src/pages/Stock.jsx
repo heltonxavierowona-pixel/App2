@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { useStore } from '../store.jsx';
 import { Icon, PageHead, Tabs, Empty, Modal, Field, fmtDateTime } from '../ui.jsx';
-import { addMovement, stockValue, hasVariants } from '../lib/logic.js';
+import { addMovement, stockValue, hasVariants, fmtQty } from '../lib/logic.js';
 import { velocities } from '../lib/insights.js';
 
 const TYPES = {
@@ -48,7 +48,7 @@ function MovementForm({ preset, onClose }) {
         )}
         <Field label={type === 'adjust' ? 'Stock réel compté' : 'Quantité'}
           hint={type === 'adjust' && product ? `Stock enregistré actuellement : ${current}` : null}>
-          <input type="number" min="0" inputMode="numeric" required autoFocus value={qty} onChange={(e) => setQty(e.target.value)} />
+          <input type="number" min="0" step="any" inputMode="decimal" required autoFocus value={qty} onChange={(e) => setQty(e.target.value)} />
         </Field>
         {type !== 'adjust' && (
           <Field label="Motif">
@@ -104,7 +104,7 @@ export default function Stock() {
                   <tr key={p.id}>
                     <td><strong>{p.name}</strong>
                       <div className="muted">{hasVariants(p) ? p.variants.map((v) => `${v.label} : ${v.stock}`).join(' · ') : p.category}</div></td>
-                    <td className="r"><span className={`badge ${p.stock <= 0 ? 'crit' : p.stock <= p.minStock ? 'warn' : 'ok'}`}>{p.stock}</span></td>
+                    <td className="r"><span className={`badge ${p.stock <= 0 ? 'crit' : p.stock <= p.minStock ? 'warn' : 'ok'}`}>{fmtQty(p.stock, p.unit)}</span></td>
                     <td className="r num">{p.minStock}</td>
                     <td className="r num">{perDay ? (perDay * 7).toFixed(1) : '—'}</td>
                     <td className={`r num ${daysLeft <= 7 ? 'neg' : ''}`}>{Number.isFinite(daysLeft) ? `${Math.round(daysLeft)} j` : '—'}</td>

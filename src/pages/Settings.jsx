@@ -4,6 +4,7 @@ import { Icon, PageHead, Field, download, toCSV, fmtDateTime } from '../ui.jsx';
 import { emptyState, PAYMENTS, ROLES, updateSettings, replaceAll } from '../lib/logic.js';
 import { demoState } from '../lib/demo.js';
 import { listMembers, inviteMember, removeMember } from '../lib/cloud.js';
+import { usePrefs } from '../lib/prefs.js';
 
 const SYNC_LABEL = {
   local: 'Données sur cet appareil uniquement',
@@ -70,6 +71,7 @@ export default function Settings() {
   const [f, setF] = useState(state.settings);
   const [newShop, setNewShop] = useState({ name: '', currency: state.settings.currency });
   const fileRef = useRef(null);
+  const [prefs, setPrefs] = usePrefs();
   const hasData = state.products.length || state.sales.length || state.customers.length || state.expenses.length;
   const stamp = new Date().toISOString().slice(0, 10);
   useEffect(() => { setF(state.settings); }, [shop?.id]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -147,6 +149,28 @@ export default function Settings() {
             </>
           )}
         </form>
+      </section>
+
+      <section className="card">
+        <h3>Ce poste de caisse</h3>
+        <div className="form-grid">
+          <Field label="Impression après une vente">
+            <select value={prefs.printFormat} onChange={(e) => setPrefs({ printFormat: e.target.value })}>
+              <option value="ticket">Ticket 80 mm (imprimante thermique)</option>
+              <option value="a4">Facture A4</option>
+            </select>
+          </Field>
+          <label className="check">
+            <input type="checkbox" checked={prefs.autoPrint} onChange={(e) => setPrefs({ autoPrint: e.target.checked })} />
+            <span>Imprimer automatiquement à chaque vente validée</span>
+          </label>
+        </div>
+        <p className="muted small">
+          Ces réglages ne concernent que cet ordinateur. Choisissez l'imprimante à tickets dans la fenêtre d'impression la première fois ;
+          pour imprimer sans fenêtre, lancez Chrome avec l'option <code>--kiosk-printing</code>.
+          Le tiroir-caisse s'ouvre par l'imprimante : activez « ouvrir le tiroir avant l'impression » dans les propriétés de son pilote.
+          Une douchette USB fonctionne sans réglage.
+        </p>
       </section>
 
       <section className="card">

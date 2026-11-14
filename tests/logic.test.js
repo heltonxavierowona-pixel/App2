@@ -267,3 +267,30 @@ test('rapports par e-mail : un par gérant, un général par patron', () => {
   assert.match(emails[0].html, /Robe &lt;luxe&gt;/);
   assert.doesNotMatch(emails[0].html, /Mokolo/);
 });
+
+// ---------- Mode caisse : vente au poids, monnaie rendue, étiquettes de balance ----------
+import { fmtQty } from '../src/lib/logic.js';
+
+test('vente au poids : quantités décimales, arrondis et étiquette de balance', () => {
+  let s = emptyState();
+  s = saveProduct(s, { name: 'Farine', code: '12345', unit: 'kg', cost: 400, price: 650, stock: 25 });
+  s = saveProduct(s, { name: 'Pain', cost: 100, price: 150, stock: 40 });
+  const [farine, pain] = s.products;
+  assert.throws(() => addSale(s, { items: [{ productId: pain.id, qty: 1.5 }], payment: 'cash' }), /entière/);
+  assert.throws(() => saveProduct(s, { name: 'X', unit: 'kg', variants: [{ label: 'A' }] }), /variantes/);
+  s = addSale(s, { items: [{ productId: farine.id, qty: 0.1 }, { productId: farine.id, qty: 0.2 }], payment: 'cash', received: 500 });
+  assert.equal(s.products[0].stock, 24.7); // pas d'erreur d'arrondi 0,1 + 0,2
+  assert.equal(s.sales[0].total, 195);
+  assert.equal(s.sales[0].change, 305);
+  assert.equal(s.sales[0].items[0].unit, 'kg');
+  assert.equal(fmtQty(1.25, 'kg'), '1,25 kg');
+  assert.equal(fmtQty(3, 'unit'), '3');
+  // étiquette de balance : 21 + article 12345 + 01250 g + clé
+  const hit = findByCode(s, '2112345012507');
+  assert.equal(hit.product.name, 'Farine');
+  assert.equal(hit.qty, 1.25);
+  assert.equal(findByCode(s, '2199999012507'), null);
+  // monnaie : ignorée si le montant reçu est insuffisant ou si le paiement n'est pas en espèces
+  s = addSale(s, { items: [{ productId: pain.id, qty: 2 }], payment: 'mobile', received: 1000 });
+  assert.equal(s.sales[1].change, null);
+});

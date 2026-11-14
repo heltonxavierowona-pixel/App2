@@ -1,10 +1,10 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { useStore } from '../store.jsx';
 import { Icon, PageHead, Empty, Modal, Field } from '../ui.jsx';
-import { saveProduct, deleteProduct, hasVariants } from '../lib/logic.js';
+import { saveProduct, deleteProduct, hasVariants, UNITS, isMeasured, fmtQty } from '../lib/logic.js';
 import Scanner from '../components/Scanner.jsx';
 
-const BLANK = { name: '', code: '', barcode: '', category: '', cost: '', price: '', stock: '', minStock: '', variants: [] };
+const BLANK = { name: '', code: '', barcode: '', category: '', unit: 'unit', cost: '', price: '', stock: '', minStock: '', variants: [] };
 
 export function ProductForm({ product, onClose }) {
   const { state, run } = useStore();
@@ -16,6 +16,8 @@ export function ProductForm({ product, onClose }) {
   const categories = [...new Set(state.products.map((p) => p.category))].sort();
   const cost = Number(f.cost) || 0, price = Number(f.price) || 0;
   const withVariants = f.variants.length > 0;
+  const measured = isMeasured(f);
+  const suffix = measured ? ` (par ${UNITS[f.unit]})` : '';
 
   const onScan = useCallback((code) => {
     setF((cur) => (scanFor === 'product'
@@ -41,10 +43,20 @@ export function ProductForm({ product, onClose }) {
             <input value={f.category} onChange={set('category')} list="categories" placeholder="ex. Chaussures" />
             <datalist id="categories">{categories.map((c) => <option key={c} value={c} />)}</datalist>
           </Field>
-          <Field label="Prix d'achat"><input type="number" min="0" inputMode="numeric" required value={f.cost} onChange={set('cost')} /></Field>
-          <Field label="Prix de vente"><input type="number" min="0" inputMode="numeric" required value={f.price} onChange={set('price')} /></Field>
+          <Field label="Vendu" hint={measured ? 'Les prix et le stock sont exprimés dans cette unité' : null}>
+            <select value={f.unit ?? 'unit'} onChange={set('unit')} disabled={withVariants}>
+              <option value="unit">À la pièce</option>
+              <option value="kg">Au poids (kg)</option>
+              <option value="g">Au poids (g)</option>
+              <option value="l">Au volume (L)</option>
+              <option value="m">À la longueur (m)</option>
+            </select>
+          </Field>
+          <span />
+          <Field label={`Prix d'achat${suffix}`}><input type="number" min="0" inputMode="numeric" required value={f.cost} onChange={set('cost')} /></Field>
+          <Field label={`Prix de vente${suffix}`}><input type="number" min="0" inputMode="numeric" required value={f.price} onChange={set('price')} /></Field>
           {!product && !withVariants && (
-            <Field label="Stock initial"><input type="number" min="0" inputMode="numeric" value={f.stock} onChange={set('stock')} placeholder="0" /></Field>
+            <Field label="Stock initial"><input type="number" min="0" step="any" inputMode="decimal" value={f.stock} onChange={set('stock')} placeholder="0" /></Field>
           )}
           <Field label="Seuil minimum" hint="Alerte quand le stock total atteint ce niveau">
             <input type="number" min="0" inputMode="numeric" value={f.minStock} onChange={set('minStock')} placeholder="0" />
@@ -57,7 +69,7 @@ export function ProductForm({ product, onClose }) {
           </div>
         </Field>
 
-        <fieldset className="variants">
+        {!measured && <fieldset className="variants">
           <legend>Variantes (tailles, couleurs…)</legend>
           {!withVariants && <p className="muted small">Facultatif. Utile pour suivre le stock par pointure ou par couleur.</p>}
           {f.variants.map((v, i) => (
@@ -79,7 +91,7 @@ export function ProductForm({ product, onClose }) {
             onClick={() => setF({ ...f, variants: [...f.variants, { label: '', stock: '', barcode: '' }] })}>
             <Icon name="plus" size={14} /> Ajouter une variante
           </button>
-        </fieldset>
+        </fieldset>}
 
         {price > 0 && (
           <p className={`note ${price <= cost ? 'neg' : ''}`}>
@@ -151,7 +163,7 @@ export default function Products() {
                       <td className="r num">{fmt(p.price)}</td>
                       <td className={`r num ${rate < 10 ? 'neg' : ''}`}>{rate} %</td>
                       <td className="r">
-                        <span className={`badge ${p.stock <= 0 ? 'crit' : p.stock <= p.minStock ? 'warn' : 'ok'}`}>{p.stock}</span>
+                        <span className={`badge ${p.stock <= 0 ? 'crit' : p.stock <= p.minStock ? 'warn' : 'ok'}`}>{fmtQty(p.stock, p.unit)}</span>
                       </td>
                       <td className="r nowrap">
                         <button className="icon-btn" onClick={() => setEditing(p)} aria-label={`Modifier ${p.name}`}><Icon name="edit" size={17} /></button>

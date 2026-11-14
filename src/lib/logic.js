@@ -21,6 +21,13 @@ export const PAYMENTS = {
 };
 export const PAY_NOW = Object.fromEntries(Object.entries(PAYMENTS).filter(([k]) => k !== 'credit'));
 
+// Unités de vente : à la pièce, ou au poids / au volume / à la longueur (quantités décimales).
+export const UNITS = { unit: 'pièce', kg: 'kg', g: 'g', l: 'L', m: 'm' };
+export const isMeasured = (p) => Boolean(p?.unit && p.unit !== 'unit');
+const r3 = (n) => Math.round(n * 1000) / 1000;
+export const fmtQty = (qty, unit) =>
+  `${r3(qty).toLocaleString('fr-FR', { maximumFractionDigits: 3 })}${unit && unit !== 'unit' ? ` ${UNITS[unit]}` : ''}`;
+
 export const EXPENSE_CATEGORIES = [
   'Loyer', 'Salaires', 'Transport', 'Électricité / Eau', 'Internet / Téléphone',
   'Taxes', 'Entretien', 'Autre',
@@ -80,7 +87,10 @@ export function saveProduct(state, input) {
     name, code, barcode, cost, price,
     category: str(input.category) || 'Divers',
     minStock: Math.max(0, num(input.minStock)),
+    unit: UNITS[input.unit] ? input.unit : 'unit',
   };
+  if (fields.unit !== 'unit' && (input.variants ?? []).some((v) => str(v.label)))
+    fail('Un produit vendu au poids ne peut pas avoir de variantes.');
   const wanted = (input.variants ?? [])
     .map((v) => ({ id: v.id, label: str(v.label), barcode: str(v.barcode), stock: num(v.stock) }))
     .filter((v) => v.label);
@@ -145,7 +155,19 @@ export function findByCode(state, code) {
     if (variant) return { product: p, variant };
     if (p.barcode === code || p.code === code) return { product: p, variant: null };
   }
-  return null;
+  return findWeightLabel(state, code);
+}
+
+// Étiquette de balance (EAN-13 commençant par 2) : 2X + 5 chiffres d'article + 5 chiffres de poids
+// en grammes + clé. L'article est reconnu par son code interne ou par les 7 premiers chiffres.
+function findWeightLabel(state, code) {
+  if (!/^2\d{12}$/.test(code)) return null;
+  const item = code.slice(2, 7), prefix = code.slice(0, 7), grams = Number(code.slice(7, 12));
+  const product = state.products.find((p) =>
+    !p.archived && isMeasured(p) && (p.code === item || p.code === String(Number(item)) || p.barcode === prefix));
+  if (!product || !grams) return null;
+  const qty = product.unit === 'g' ? grams : r3(grams / 1000);
+  return { product, variant: null, qty };
 }
 
 // ---------- Stock ----------
@@ -173,15 +195,15 @@ export function addMovement(state, { productId, variantId, type, qty, reason, da
   if (current + delta < 0 && !lenient())
     fail(`Stock insuffisant pour « ${lineName(product, variant)} » (disponible : ${current}).`);
   const movement = {
-    id: uid(), date: iso(date), productId, variantId: variant?.id ?? null, type, qty: delta,
+    id: uid(), date: iso(date), productId, variantId: variant?.id ?? null, type, qty: r3(delta),
     reason: str(reason), ref: ref ?? null,
   };
   return {
     ...state,
     products: state.products.map((p) => (p.id !== productId ? p : {
       ...p,
-      stock: p.stock + delta,
-      variants: (p.variants ?? []).map((v) => (v.id === variant?.id ? { ...v, stock: v.stock + delta } : v)),
+      stock: r3(p.stock + delta),
+      variants: (p.variants ?? []).map((v) => (v.id === variant?.id ? { ...v, stock: r3(v.stock + delta) } : v)),
     })),
     movements: [...state.movements, movement],
   };
@@ -189,7 +211,7 @@ export function addMovement(state, { productId, variantId, type, qty, reason, da
 
 // ---------- Ventes ----------
 
-export function addSale(state, { items, discount, payment, customerId, paid, date, note }) {
+export function addSale(state, { items, discount, payment, customerId, paid, received, date, note }) {
   if (!items?.length) fail('Ajoutez au moins un produit à la vente.');
   if (!PAYMENTS[payment]) fail('Mode de paiement invalide.');
   const lines = items.map((it) => {
@@ -198,13 +220,15 @@ export function addSale(state, { items, discount, payment, customerId, paid, dat
     const variant = product.variants?.find((v) => v.id === it.variantId) ?? null;
     const qty = num(it.qty);
     if (qty <= 0) fail(`Quantité invalide pour « ${product.name} ».`);
+    if (!isMeasured(product) && !Number.isInteger(qty))
+      fail(`« ${product.name} » se vend à la pièce : la quantité doit être entière.`);
     return {
       id: uid(), productId: product.id, variantId: variant?.id ?? null,
-      name: lineName(product, variant), qty,
+      name: lineName(product, variant), qty: r3(qty), unit: product.unit ?? 'unit',
       price: it.price == null ? product.price : num(it.price), cost: product.cost,
     };
   });
-  const subtotal = lines.reduce((s, l) => s + l.qty * l.price, 0);
+  const subtotal = Math.round(lines.reduce((s, l) => s + l.qty * l.price, 0));
   discount = Math.max(0, num(discount));
   if (discount > subtotal) fail('La remise dépasse le montant de la vente.');
   const total = subtotal - discount;
@@ -214,6 +238,8 @@ export function addSale(state, { items, discount, payment, customerId, paid, dat
       fail('Choisissez le client pour une vente à crédit.');
     paidAmount = Math.min(total, Math.max(0, num(paid)));
   }
+  // Espèces remises par le client (pour la monnaie à rendre sur le ticket).
+  const given = payment === 'cash' && num(received) >= total ? num(received) : null;
   const saleDate = iso(date);
   const invoice = state.counters.invoice + 1;
   const sale = {
@@ -221,6 +247,7 @@ export function addSale(state, { items, discount, payment, customerId, paid, dat
     number: `FA-${new Date(saleDate).getFullYear()}-${String(invoice).padStart(5, '0')}`,
     items: lines, subtotal, discount, total,
     payment, customerId: customerId || null, paid: paidAmount, note: str(note),
+    received: given, change: given == null ? null : given - total,
     seller: ctx?.user ?? '',
   };
   let next = state;
@@ -244,7 +271,7 @@ export function addReturn(state, { saleId, lineId, qty, date }) {
   if (!item) fail('Vente ou article introuvable.');
   qty = num(qty);
   const max = item.qty - returnedQty(state, saleId, lineId);
-  if (qty <= 0 || qty > max) fail(`Quantité de retour invalide (maximum : ${max}).`);
+  if (qty <= 0 || qty > max + 1e-9) fail(`Quantité de retour invalide (maximum : ${r3(max)}).`);
   const ratio = sale.subtotal > 0 ? sale.total / sale.subtotal : 1;
   const amount = Math.round(item.price * ratio * qty);
   const alreadyCredited = state.returns
@@ -256,7 +283,7 @@ export function addReturn(state, { saleId, lineId, qty, date }) {
   const ret = {
     id: uid(), date: iso(date), saleId, lineId, productId: item.productId,
     variantId: item.variantId, name: item.name, qty,
-    amount, cost: item.cost * qty, creditedToDebt, refunded: amount - creditedToDebt,
+    amount, cost: Math.round(item.cost * qty), creditedToDebt, refunded: amount - creditedToDebt,
   };
   let next = state;
   const product = state.products.find((p) => p.id === item.productId);
