@@ -32,12 +32,12 @@ Deno.serve(async (req) => {
   const context = JSON.stringify(body.context);
   if (context.length > 200_000) return json({ error: "Données trop volumineuses." }, 413);
 
-  // Seuls les patrons de la boutique peuvent interroger l'assistant.
+  // Seuls le patron et les gérants de la boutique peuvent interroger l'assistant.
   const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!, {
     global: { headers: { Authorization: req.headers.get("Authorization") ?? "" } },
   });
   const { data: role, error: roleError } = await supabase.rpc("commerce_role", { shop: body.shopId });
-  if (roleError || role !== "owner") return json({ error: "Accès refusé." }, 403);
+  if (roleError || (role !== "owner" && role !== "manager")) return json({ error: "Accès refusé." }, 403);
 
   const client = new Anthropic({ apiKey });
   try {

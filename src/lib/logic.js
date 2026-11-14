@@ -463,9 +463,15 @@ export const ACTIONS = {
 const NAMES = new Map(Object.entries(ACTIONS).map(([name, fn]) => [fn, name]));
 export const actionName = (fn) => NAMES.get(fn);
 
-// Ce qu'un vendeur a le droit de faire (le patron peut tout faire).
+// Rôles : le patron ('owner') peut tout faire ; le gérant ('manager') gère sa boutique sans pouvoir
+// en remplacer toutes les données ; le vendeur ('seller') encaisse et clôture la caisse.
+export const ROLES = { owner: 'Patron', manager: 'Gérant', seller: 'Vendeur' };
 export const SELLER_ACTIONS = ['addSale', 'addReturn', 'saveCustomer', 'addPayment', 'addClosing'];
-export const canDo = (role, action) => role === 'owner' || SELLER_ACTIONS.includes(action);
+export const MANAGER_FORBIDDEN = ['replaceAll', 'updateSettings'];
+export const canDo = (role, action) =>
+  role === 'owner' ||
+  (role === 'manager' && !MANAGER_FORBIDDEN.includes(action)) ||
+  (role === 'seller' && SELLER_ACTIONS.includes(action));
 
 // op : { id, ts, user, action, payload }. `lenient` : rejoue une opération déjà acceptée
 // ailleurs sans la refuser pour stock insuffisant (la vente a réellement eu lieu).

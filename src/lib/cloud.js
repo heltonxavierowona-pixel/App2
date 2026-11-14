@@ -103,9 +103,9 @@ export const listMembers = (shopId) => guard(async () => {
   return check(await sb.from('commerce_members').select('email, role, created_at').eq('shop_id', shopId).order('created_at'));
 });
 
-export const inviteSeller = (shopId, email) => guard(async () => {
+export const inviteMember = (shopId, email, role = 'seller') => guard(async () => {
   const sb = await client();
-  check(await sb.from('commerce_members').insert({ shop_id: shopId, email: email.trim().toLowerCase(), role: 'seller' }));
+  check(await sb.from('commerce_members').insert({ shop_id: shopId, email: email.trim().toLowerCase(), role }));
 });
 
 export const removeMember = (shopId, email) => guard(async () => {

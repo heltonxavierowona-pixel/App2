@@ -13,29 +13,32 @@ import Expenses from './pages/Expenses.jsx';
 import Customers from './pages/Customers.jsx';
 import Cashbox from './pages/Cashbox.jsx';
 import Report from './pages/Report.jsx';
+import Overview from './pages/Overview.jsx';
 import Assistant from './pages/Assistant.jsx';
 import Settings from './pages/Settings.jsx';
 
-// clé, libellé, icône, écran, accessible au vendeur
+// clé, libellé, icône, écran, rôle minimum (seller < manager < owner)
 const PAGES = [
-  ['dashboard', 'Accueil', 'home', Dashboard, false],
-  ['sales', 'Ventes', 'cart', Sales, true],
-  ['products', 'Produits', 'box', Products, false],
-  ['stock', 'Stock', 'layers', Stock, true],
-  ['purchases', 'Achats', 'truck', Purchases, false],
-  ['expenses', 'Dépenses', 'wallet', Expenses, false],
-  ['customers', 'Clients', 'users', Customers, true],
-  ['cashbox', 'Caisse', 'cash', Cashbox, true],
-  ['report', 'Rapport', 'report', Report, false],
-  ['assistant', 'Assistant', 'spark', Assistant, false],
-  ['settings', 'Réglages', 'settings', Settings, true],
+  ['dashboard', 'Accueil', 'home', Dashboard, 'manager'],
+  ['sales', 'Ventes', 'cart', Sales, 'seller'],
+  ['products', 'Produits', 'box', Products, 'manager'],
+  ['stock', 'Stock', 'layers', Stock, 'seller'],
+  ['purchases', 'Achats', 'truck', Purchases, 'manager'],
+  ['expenses', 'Dépenses', 'wallet', Expenses, 'manager'],
+  ['customers', 'Clients', 'users', Customers, 'seller'],
+  ['cashbox', 'Caisse', 'cash', Cashbox, 'seller'],
+  ['report', 'Rapport', 'report', Report, 'manager'],
+  ['overview', 'Ensemble', 'store', Overview, 'owner'],
+  ['assistant', 'Assistant', 'spark', Assistant, 'manager'],
+  ['settings', 'Réglages', 'settings', Settings, 'seller'],
 ];
+const RANK = { seller: 0, manager: 1, owner: 2 };
 const MOBILE_MAIN = { owner: ['dashboard', 'sales', 'products', 'customers'], seller: ['sales', 'customers', 'cashbox', 'stock'] };
 const SYNC_DOT = { synced: 'ok', syncing: 'busy', offline: 'off', error: 'off' };
 
 export default function App() {
   const { boot, state, role, session, shop, auth, syncStatus, pendingCount } = useStore();
-  const pages = useMemo(() => PAGES.filter((p) => role === 'owner' || p[4]), [role]);
+  const pages = useMemo(() => PAGES.filter((p) => (RANK[role] ?? 0) >= RANK[p[4]]), [role]);
   const home = pages[0][0];
   const fromHash = () => {
     const key = window.location.hash.slice(1);
@@ -65,7 +68,7 @@ export default function App() {
   };
   const Current = (pages.find(([k]) => k === page) ?? pages[0])[3];
   const badge = (key) => (key === 'stock' && alerts > 0 ? <span className="dot">{alerts}</span> : null);
-  const main = MOBILE_MAIN[role] ?? MOBILE_MAIN.owner;
+  const main = role === 'seller' ? MOBILE_MAIN.seller : MOBILE_MAIN.owner;
   const syncTitle = { synced: 'Synchronisé', syncing: 'Synchronisation…', offline: 'Hors connexion', error: 'Synchronisation impossible' }[syncStatus];
 
   return (

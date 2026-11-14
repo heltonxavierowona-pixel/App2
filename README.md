@@ -15,7 +15,13 @@ dépenses, dettes et rentabilité estimée, depuis un téléphone ou un ordinate
 - **Dépenses**, **clients et dettes**, **clôture de caisse** (espèces attendues contre comptées).
 - **Rapport mensuel** imprimable (PDF).
 - **Assistant** : questions en langage courant et conseils automatiques.
-- **Équipe** (mode en ligne) : rôles patron et vendeur.
+- **Équipe** (mode en ligne) : rôles patron, gérant de boutique et vendeur.
+- **Vue d'ensemble** de toutes les boutiques du patron, avec rapport général imprimable.
+- **Rapports mensuels par e-mail** : chaque gérant reçoit le rapport de sa boutique, chaque patron
+  un rapport général. Fonction `supabase/functions/commerce-monthly-report`, planifiée par
+  `supabase/migrations/002_…sql` ; elle s'active avec les secrets `BREVO_API_KEY` et
+  `REPORT_SENDER_EMAIL`. Après une modification de `src/lib/logic.js`, `overview.js` ou
+  `monthly-email.js`, lancer `npm run sync:functions` puis redéployer la fonction.
 
 ## Deux modes
 

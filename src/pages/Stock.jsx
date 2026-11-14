@@ -64,7 +64,7 @@ function MovementForm({ preset, onClose }) {
 }
 
 export default function Stock() {
-  const { state, fmt, isOwner } = useStore();
+  const { state, fmt, canManage } = useStore();
   const [tab, setTab] = useState('levels');
   const [form, setForm] = useState(null);
   const [limit, setLimit] = useState(50);
@@ -85,8 +85,8 @@ export default function Stock() {
 
   return (
     <>
-      <PageHead title="Stock" sub={isOwner ? `Valeur du stock : ${fmt(value.cost)} au prix d'achat` : 'Niveaux de stock'}>
-        {isOwner && <button className="btn primary" disabled={!rows.length} onClick={() => setForm({})}><Icon name="plus" size={16} /> Mouvement</button>}
+      <PageHead title="Stock" sub={canManage ? `Valeur du stock : ${fmt(value.cost)} au prix d'achat` : 'Niveaux de stock'}>
+        {canManage && <button className="btn primary" disabled={!rows.length} onClick={() => setForm({})}><Icon name="plus" size={16} /> Mouvement</button>}
       </PageHead>
       <Tabs value={tab} onChange={setTab}
         options={[['levels', `Niveaux${alerts ? ` (${alerts} alerte${alerts > 1 ? 's' : ''})` : ''}`], ['history', 'Historique']]} />
@@ -110,7 +110,7 @@ export default function Stock() {
                     <td className={`r num ${daysLeft <= 7 ? 'neg' : ''}`}>{Number.isFinite(daysLeft) ? `${Math.round(daysLeft)} j` : '—'}</td>
                     <td className="r num">{suggestedOrder || '—'}</td>
                     <td className="r">
-                      {isOwner && <button className="btn small" onClick={() => setForm({ productId: p.id, type: 'in', qty: hasVariants(p) ? '' : suggestedOrder || '' })}>Entrée</button>}
+                      {canManage && <button className="btn small" onClick={() => setForm({ productId: p.id, type: 'in', qty: hasVariants(p) ? '' : suggestedOrder || '' })}>Entrée</button>}
                     </td>
                   </tr>
                 ))}

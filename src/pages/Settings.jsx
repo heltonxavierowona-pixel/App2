@@ -1,9 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useStore } from '../store.jsx';
 import { Icon, PageHead, Field, download, toCSV, fmtDateTime } from '../ui.jsx';
-import { emptyState, PAYMENTS, updateSettings, replaceAll } from '../lib/logic.js';
+import { emptyState, PAYMENTS, ROLES, updateSettings, replaceAll } from '../lib/logic.js';
 import { demoState } from '../lib/demo.js';
-import { listMembers, inviteSeller, removeMember } from '../lib/cloud.js';
+import { listMembers, inviteMember, removeMember } from '../lib/cloud.js';
 
 const SYNC_LABEL = {
   local: 'Données sur cet appareil uniquement',
@@ -17,12 +17,13 @@ function Team() {
   const { shop, notify, session } = useStore();
   const [members, setMembers] = useState(null);
   const [email, setEmail] = useState('');
+  const [role, setRole] = useState('seller');
   const load = () => listMembers(shop.id).then(setMembers).catch((e) => notify(e.message, 'error'));
   useEffect(() => { load(); }, [shop.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const invite = async (e) => {
     e.preventDefault();
-    try { await inviteSeller(shop.id, email); setEmail(''); notify('Vendeur ajouté'); load(); }
+    try { await inviteMember(shop.id, email, role); setEmail(''); notify(`${ROLES[role]} ajouté`); load(); }
     catch (err) { notify(/duplicate|23505/.test(`${err.code} ${err.message}`) ? 'Cette personne fait déjà partie de la boutique.' : err.message, 'error'); }
   };
   const remove = async (m) => {
@@ -34,15 +35,16 @@ function Team() {
     <section className="card">
       <h3>Équipe</h3>
       <p className="muted small">
-        Un vendeur peut enregistrer des ventes, des retours, des règlements clients et clôturer la caisse.
-        Il ne voit ni le tableau de bord, ni les dépenses, ni les réglages. Il ouvre son propre compte avec l'adresse saisie ici.
+        Un <strong>vendeur</strong> enregistre les ventes, les retours, les règlements clients et clôture la caisse, sans voir les marges ni les dépenses.
+        Un <strong>gérant</strong> gère toute la boutique (produits, stock, achats, dépenses, rapports) et reçoit son rapport mensuel, sans accès à l'équipe ni aux autres boutiques.
+        Chacun ouvre son propre compte avec l'adresse saisie ici.
       </p>
       <ul className="plain">
         {(members ?? []).map((m) => (
           <li key={m.email} className="rank-line">
             <span>{m.email}{m.email === session.email && ' (vous)'}</span>
             <span className="row">
-              <span className={`badge ${m.role === 'owner' ? 'ok' : 'warn'}`}>{m.role === 'owner' ? 'Patron' : 'Vendeur'}</span>
+              <span className={`badge ${m.role === 'seller' ? 'warn' : 'ok'}`}>{ROLES[m.role]}</span>
               {m.role !== 'owner' && (
                 <button className="icon-btn" aria-label={`Retirer ${m.email}`} onClick={() => remove(m)}><Icon name="trash" size={16} /></button>
               )}
@@ -52,8 +54,12 @@ function Team() {
         {members === null && <li className="muted">Chargement…</li>}
       </ul>
       <form className="row" onSubmit={invite}>
-        <input type="email" required placeholder="E-mail du vendeur" value={email} onChange={(e) => setEmail(e.target.value)} />
-        <button className="btn primary" type="submit">Ajouter un vendeur</button>
+        <input type="email" required placeholder="E-mail de la personne" value={email} onChange={(e) => setEmail(e.target.value)} />
+        <select className="auto" value={role} onChange={(e) => setRole(e.target.value)} aria-label="Rôle">
+          <option value="seller">Vendeur</option>
+          <option value="manager">Gérant</option>
+        </select>
+        <button className="btn primary" type="submit">Ajouter</button>
       </form>
     </section>
   );
@@ -148,7 +154,7 @@ export default function Settings() {
         <ul className="plain">
           {session.shops.map((s) => (
             <li key={s.id} className="rank-line">
-              <span><strong>{s.name}</strong> <span className="muted">· {s.role === 'owner' ? 'Patron' : 'Vendeur'}</span></span>
+              <span><strong>{s.name}</strong> <span className="muted">· {ROLES[s.role]}</span></span>
               {s.id === shop.id
                 ? <span className="badge ok">Ouverte</span>
                 : <button className="btn small" onClick={() => auth.switchShop(s.id)}>Ouvrir</button>}

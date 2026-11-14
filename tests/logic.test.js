@@ -212,3 +212,58 @@ test('les données de démonstration sont cohérentes et produisent des conseils
   const list = insights(s, (n) => `${n} F`, now);
   assert.ok(list.length >= 3);
 });
+
+// ---------- Plusieurs boutiques, rôles et rapports mensuels ----------
+import { consolidate, previousMonthKey, monthBounds } from '../src/lib/overview.js';
+import { buildEmails } from '../src/lib/monthly-email.js';
+
+test('rôles : le gérant gère sa boutique mais ne peut pas en remplacer les données', () => {
+  assert.equal(canDo('manager', 'saveProduct'), true);
+  assert.equal(canDo('manager', 'addExpense'), true);
+  assert.equal(canDo('manager', 'replaceAll'), false);
+  assert.equal(canDo('seller', 'addExpense'), false);
+  assert.equal(canDo(undefined, 'addSale'), false);
+});
+
+test('vue d\'ensemble : total et classement de plusieurs boutiques', () => {
+  const day = new Date(2026, 9, 12, 10);
+  const make = (name, qty) => {
+    let s = emptyState(name);
+    s = saveProduct(s, { name: 'Basket', cost: 6000, price: 10000, stock: 50, date: new Date(2026, 8, 1) });
+    s = addSale(s, { items: [{ productId: s.products[0].id, qty }], payment: 'cash', date: day });
+    return s;
+  };
+  let a = make('Centre', 3), b = make('Mokolo', 5);
+  a = addExpense(a, { category: 'Loyer', amount: 8000, date: day });
+  const c = consolidate([{ id: 'a', name: 'Centre', state: a }, { id: 'b', name: 'Mokolo', state: b }], '2026-10');
+  assert.equal(c.total.m.revenue, 80000);
+  assert.equal(c.total.m.margin, 32000);
+  assert.equal(c.total.m.net, 24000);
+  assert.deepEqual(c.ranking.map((r) => r.name), ['Mokolo', 'Centre']);
+  assert.equal(consolidate([{ id: 'a', name: 'Centre', state: a }], '2026-09').total.m.revenue, 0);
+  // devises différentes : pas de total
+  const eur = { ...b, settings: { ...b.settings, currency: 'EUR' } };
+  assert.equal(consolidate([{ id: 'a', name: 'A', state: a }, { id: 'b', name: 'B', state: eur }], '2026-10').total, null);
+});
+
+test('rapports par e-mail : un par gérant, un général par patron', () => {
+  assert.equal(previousMonthKey(new Date(Date.UTC(2026, 10, 1, 6))), '2026-10');
+  assert.equal(previousMonthKey(new Date(Date.UTC(2027, 0, 1, 6))), '2026-12');
+  assert.equal(previousMonthKey(new Date(Date.UTC(2026, 9, 31, 23, 30)), 1), '2026-10'); // déjà novembre à Douala
+  assert.equal(monthBounds('2026-10', 1).start.toISOString(), '2026-09-30T23:00:00.000Z');
+  let s = emptyState('Centre');
+  s = saveProduct(s, { name: 'Robe <luxe>', cost: 5000, price: 9000, stock: 10, date: new Date(Date.UTC(2026, 8, 1)) });
+  s = addSale(s, { items: [{ productId: s.products[0].id, qty: 2 }], payment: 'cash', date: new Date(Date.UTC(2026, 9, 10)) });
+  const shops = [
+    { id: 's1', name: 'Centre', currency: 'FCFA', state: s, owners: ['boss@x.cm'], managers: ['g1@x.cm'] },
+    { id: 's2', name: 'Mokolo', currency: 'FCFA', state: emptyState('Mokolo'), owners: ['boss@x.cm'], managers: [] },
+  ];
+  const emails = buildEmails(shops, '2026-10', 1);
+  assert.deepEqual(emails.map((e) => [e.to, e.scope]), [['g1@x.cm', 's1'], ['boss@x.cm', 'general']]);
+  assert.match(emails[0].subject, /Centre — rapport de octobre 2026/);
+  assert.match(emails[1].subject, /Rapport général.*2 boutiques/);
+  assert.match(emails[1].html, /Ensemble des boutiques/);
+  assert.match(emails[1].html, /18\s000 FCFA/);
+  assert.match(emails[0].html, /Robe &lt;luxe&gt;/);
+  assert.doesNotMatch(emails[0].html, /Mokolo/);
+});

@@ -215,6 +215,44 @@ export function StoreProvider({ children }) {
     return (n) => `${nf.format(Math.round(n || 0))} ${state.settings.currency}`;
   }, [state.settings.currency]);
 
+  // États de toutes les boutiques dont l'utilisateur est le patron (pour la vue d'ensemble).
+  // Les boutiques non ouvertes sont lues dans le cache de l'appareil, puis mises à jour en ligne.
+  const loadShopStates = useCallback(async () => {
+    const s = sessionRef.current;
+    const out = [];
+    for (const item of s.shops.filter((x) => x.role === 'owner')) {
+      if (item.id === s.currentShopId) { out.push({ ...item, state: stateRef.current, stale: false }); continue; }
+      const saved = await kvGet(`shop:${item.id}`);
+      const d = saved
+        ? { ...saved, confirmed: normalize(saved.confirmed, item.name, item.currency) }
+        : { shopId: item.id, confirmed: emptyState(item.name, item.currency), lastSeq: 0, pending: [] };
+      let stale = false;
+      if (s.mode === 'cloud') {
+        try {
+          for (;;) {
+            const ops = await cloud.pullOps(item.id, d.lastSeq);
+            if (!ops.length) break;
+            const seen = new Set();
+            for (const op of ops) {
+              try { d.confirmed = applyOp(d.confirmed, op, { lenient: true }); } catch { /* opération ignorée */ }
+              seen.add(op.id);
+            }
+            d.lastSeq = ops.at(-1).seq;
+            d.pending = d.pending.filter((p) => !seen.has(p.id));
+            if (ops.length < 500) break;
+          }
+          await kvSet(`shop:${item.id}`, d);
+        } catch { stale = true; }
+      }
+      let state = d.confirmed;
+      for (const op of d.pending) {
+        try { state = applyOp(state, op, { lenient: true }); } catch { /* opération en attente invalide */ }
+      }
+      out.push({ ...item, state, stale });
+    }
+    return out;
+  }, []);
+
   // Impression (facture, rapport) : le document est rendu hors de l'application puis imprimé.
   const print = useCallback((element) => setPrintDoc(element), []);
   useEffect(() => {
@@ -226,9 +264,10 @@ export function StoreProvider({ children }) {
   }, [printDoc]);
 
   const value = useMemo(() => ({
-    boot, session, shop, role, isOwner: role === 'owner', state, run, notify, fmt, auth, print,
+    boot, session, shop, role, isOwner: role === 'owner', canManage: role !== 'seller', state, run, notify, fmt, auth, print,
+    loadShopStates,
     syncStatus, pendingCount: data?.pending.length ?? 0, sync, cloudEnabled: cloud.cloudEnabled,
-  }), [boot, session, shop, role, state, run, notify, fmt, auth, print, syncStatus, data, sync]);
+  }), [boot, session, shop, role, state, run, notify, fmt, auth, print, loadShopStates, syncStatus, data, sync]);
 
   return (
     <StoreContext.Provider value={value}>
