@@ -1799,3 +1799,75 @@ a.topbar-btn {
     animation-duration: 1.5s !important;
   }
 }
+
+/* ---------- Finition visuelle NUMERA (couche fournie : numera-import-export-upgrade.css) ----------
+   Reprise telle quelle, avec deux ajustements signalés ci-dessous pour ne rien casser. */
+:root {
+  --radius: 16px;
+  --radius-sm: 10px;
+  --shadow: 0 8px 28px rgba(5, 30, 54, 0.07), 0 1px 2px rgba(5, 30, 54, 0.04);
+  --mist-50: #f3f7fb;
+  --green-600: #087a55;
+}
+body {
+  background:
+    radial-gradient(ellipse at 88% 0%, rgba(20, 86, 143, 0.07), transparent 32%),
+    var(--mist-50);
+}
+.card,
+.panel,
+.surface {
+  box-shadow: var(--shadow);
+}
+button,
+.btn,
+.nav-item,
+.topbar-btn {
+  transition:
+    background 0.18s,
+    border-color 0.18s,
+    box-shadow 0.18s,
+    transform 0.18s;
+}
+button:hover:not(:disabled),
+.btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+/* Ajustement : les liens écrits dans le texte ne doivent pas bouger au survol. */
+.link:hover:not(:disabled) {
+  transform: none;
+}
+input,
+select,
+textarea {
+  border-radius: 10px;
+}
+table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+thead th {
+  background: var(--mist-100);
+  color: var(--ink-2);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.045em;
+}
+tbody tr:hover {
+  background: color-mix(in srgb, var(--green-100) 35%, transparent);
+}
+.page-header {
+  background: linear-gradient(125deg, #061d34 0%, #0a3b66 70%, #126b72 100%);
+}
+/* Ajustement : l'accueil garde le motif du logo par-dessus le nouveau dégradé. */
+.page-header.hero {
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 200'%3E%3Cg fill='%23fff' fill-opacity='.07'%3E%3Crect x='40' y='100' width='34' height='100' rx='5'/%3E%3Crect x='92' y='60' width='34' height='140' rx='5'/%3E%3Crect x='144' y='24' width='34' height='176' rx='5'/%3E%3C/g%3E%3Cg fill='none' stroke='%2300E676' stroke-opacity='.55' stroke-width='10' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14 150l62 20 52-62 96-76'/%3E%3Cpath d='M180 26h48v50'/%3E%3C/g%3E%3C/svg%3E")
+      right -18px bottom -34px / 210px no-repeat,
+    linear-gradient(125deg, #061d34 0%, #0a3b66 70%, #126b72 100%);
+}
+@media (min-width: 960px) {
+  .content {
+    max-width: 1180px;
+  }
+}
