@@ -13,6 +13,10 @@ dépenses, dettes et rentabilité estimée, depuis un téléphone ou un ordinate
 - **Produits et stock** : prix d'achat et de vente, codes, variantes, seuils, alertes, inventaire.
 - **Achats et fournisseurs** : entrées de marchandise, coût moyen pondéré, dettes fournisseurs.
 - **Dépenses**, **clients et dettes**, **clôture de caisse** (espèces attendues contre comptées).
+- **Mode caisse sur ordinateur** : douchette code-barres, ticket 80 mm, monnaie à rendre, raccourcis
+  clavier, vente au poids, catalogues de plusieurs milliers d'articles.
+- **Plusieurs caisses par boutique** : chaque poste porte un nom de caisse, avec sa propre clôture
+  et sa propre numérotation de factures.
 - **Rapport mensuel** imprimable (PDF).
 - **Assistant** : questions en langage courant et conseils automatiques.
 - **Équipe** (mode en ligne) : rôles patron, gérant de boutique et vendeur.

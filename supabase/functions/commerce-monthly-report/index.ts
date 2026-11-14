@@ -45,12 +45,12 @@ Deno.serve(async () => {
     let after = 0;
     for (;;) {
       const { data, error } = await db.from("commerce_ops")
-        .select("seq, id, user_name, action, payload, ts")
+        .select("seq, id, user_name, register, action, payload, ts")
         .eq("shop_id", shop.id).gt("seq", after).order("seq").limit(1000);
       if (error) return json({ error: "Lecture du journal impossible." }, 500);
       for (const op of data) {
         try {
-          state = applyOp(state, { id: op.id, ts: op.ts, user: op.user_name, action: op.action, payload: op.payload }, { lenient: true });
+          state = applyOp(state, { id: op.id, ts: op.ts, user: op.user_name, register: op.register ?? "", action: op.action, payload: op.payload }, { lenient: true });
         } catch { /* opération ignorée, comme dans l'application */ }
       }
       if (data.length < 1000) break;

@@ -2,7 +2,7 @@
 import { useCallback, useState } from 'react';
 
 const KEY = 'numera-commercial:poste';
-const DEFAULTS = { printFormat: 'ticket', autoPrint: false };
+const DEFAULTS = { printFormat: 'ticket', autoPrint: false, register: '' };
 
 export function readPrefs() {
   try { return { ...DEFAULTS, ...JSON.parse(localStorage.getItem(KEY) ?? '{}') }; } catch { return DEFAULTS; }

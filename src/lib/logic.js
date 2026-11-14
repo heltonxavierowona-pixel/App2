@@ -5,7 +5,7 @@
 // le même résultat (mêmes identifiants, mêmes dates), ce qui permet la synchronisation
 // entre appareils par simple journal d'opérations.
 
-let ctx = null; // contexte de l'opération en cours : { id, ts, user, lenient, n }
+let ctx = null; // contexte de l'opération en cours : { id, ts, user, register, lenient, n }
 
 export const uid = () => {
   if (ctx) return `${ctx.id}-${ctx.n++}`;
@@ -36,7 +36,7 @@ export const EXPENSE_CATEGORIES = [
 export const emptyState = (shopName = 'Ma boutique', currency = 'FCFA') => ({
   version: 2,
   settings: { shopName, currency, phone: '', address: '' },
-  counters: { invoice: 0 },
+  counters: { invoice: 0, byRegister: {} },
   products: [],
   sales: [],
   returns: [],
@@ -68,6 +68,16 @@ const fail = (msg) => { throw new Error(msg); };
 const iso = (d) => (d ? new Date(d).toISOString() : ctx?.ts ?? new Date().toISOString());
 const lenient = () => Boolean(ctx?.lenient);
 const payNow = (m) => (PAY_NOW[m] ? m : 'cash');
+
+// Caisse (poste) sur laquelle l'opération est saisie. '' = caisse principale (boutique à une seule caisse).
+const reg = () => ctx?.register ?? '';
+export const registerOf = (x) => x?.register ?? '';
+export const registerLabel = (r) => r || 'Caisse principale';
+const registerCode = (r) => r.normalize('NFD').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8);
+
+// Toutes les caisses connues de la boutique (celles qui ont déjà vendu ou clôturé).
+export const registersOf = (state) =>
+  [...new Set([...state.sales, ...state.closings].map(registerOf))].sort();
 
 // ---------- Produits & variantes ----------
 
@@ -241,10 +251,13 @@ export function addSale(state, { items, discount, payment, customerId, paid, rec
   // Espèces remises par le client (pour la monnaie à rendre sur le ticket).
   const given = payment === 'cash' && num(received) >= total ? num(received) : null;
   const saleDate = iso(date);
-  const invoice = state.counters.invoice + 1;
+  // Numérotation continue par caisse : deux caisses hors connexion ne produisent jamais le même numéro.
+  const register = reg();
+  const invoice = (register ? state.counters.byRegister?.[register] ?? 0 : state.counters.invoice) + 1;
+  const code = registerCode(register);
   const sale = {
-    id: uid(), date: saleDate,
-    number: `FA-${new Date(saleDate).getFullYear()}-${String(invoice).padStart(5, '0')}`,
+    id: uid(), date: saleDate, register,
+    number: `FA-${new Date(saleDate).getFullYear()}-${code ? `${code}-` : ''}${String(invoice).padStart(5, '0')}`,
     items: lines, subtotal, discount, total,
     payment, customerId: customerId || null, paid: paidAmount, note: str(note),
     received: given, change: given == null ? null : given - total,
@@ -256,7 +269,10 @@ export function addSale(state, { items, discount, payment, customerId, paid, rec
       productId: l.productId, variantId: l.variantId, type: 'sale', qty: l.qty,
       reason: 'Vente', date: sale.date, ref: sale.id,
     });
-  return { ...next, counters: { ...next.counters, invoice }, sales: [...next.sales, sale] };
+  const counters = register
+    ? { ...next.counters, byRegister: { ...next.counters.byRegister, [register]: invoice } }
+    : { ...next.counters, invoice };
+  return { ...next, counters, sales: [...next.sales, sale] };
 }
 
 export const returnedQty = (state, saleId, lineId) =>
@@ -281,7 +297,7 @@ export function addReturn(state, { saleId, lineId, qty, date }) {
   const balance = sale.customerId ? Math.max(0, customerBalance(state, sale.customerId)) : 0;
   const creditedToDebt = Math.min(amount, saleDue, balance);
   const ret = {
-    id: uid(), date: iso(date), saleId, lineId, productId: item.productId,
+    id: uid(), date: iso(date), register: reg(), saleId, lineId, productId: item.productId,
     variantId: item.variantId, name: item.name, qty,
     amount, cost: Math.round(item.cost * qty), creditedToDebt, refunded: amount - creditedToDebt,
   };
@@ -302,7 +318,7 @@ export function addExpense(state, { category, amount, note, date, method }) {
   amount = num(amount);
   if (amount <= 0) fail('Le montant de la dépense doit être supérieur à zéro.');
   const expense = {
-    id: uid(), date: iso(date), amount, method: payNow(method),
+    id: uid(), date: iso(date), register: reg(), amount, method: payNow(method),
     category: str(category) || 'Autre', note: str(note),
   };
   return { ...state, expenses: [...state.expenses, expense] };
@@ -346,7 +362,7 @@ export function addPayment(state, { customerId, amount, method, note, date }) {
   const balance = customerBalance(state, customerId);
   if (amount > balance && !lenient()) fail(`Le règlement dépasse la dette du client (${balance}).`);
   const payment = {
-    id: uid(), date: iso(date), customerId, amount, method: payNow(method), note: str(note),
+    id: uid(), date: iso(date), register: reg(), customerId, amount, method: payNow(method), note: str(note),
   };
   return { ...state, payments: [...state.payments, payment] };
 }
@@ -394,7 +410,7 @@ export function addPurchase(state, { supplierId, items, paid, method, date, note
   });
   const total = lines.reduce((s, l) => s + l.qty * l.cost, 0);
   const purchase = {
-    id, date: purchaseDate, supplierId, items: lines, total,
+    id, date: purchaseDate, register: reg(), supplierId, items: lines, total,
     paid: Math.min(total, Math.max(0, paid == null || paid === '' ? total : num(paid))),
     method: payNow(method), note: str(note),
   };
@@ -414,7 +430,7 @@ export function addSupplierPayment(state, { supplierId, amount, method, note, da
   if (amount <= 0) fail('Le montant du paiement doit être supérieur à zéro.');
   const balance = supplierBalance(state, supplierId);
   if (amount > balance && !lenient()) fail(`Le paiement dépasse ce que vous devez à ce fournisseur (${balance}).`);
-  const payment = { id: uid(), date: iso(date), supplierId, amount, method: payNow(method), note: str(note) };
+  const payment = { id: uid(), date: iso(date), register: reg(), supplierId, amount, method: payNow(method), note: str(note) };
   return { ...state, supplierPayments: [...state.supplierPayments, payment] };
 }
 
@@ -423,21 +439,22 @@ export const totalSupplierDebt = (state) =>
 
 // ---------- Clôture de caisse ----------
 
-// Espèces attendues dans le tiroir depuis la dernière clôture.
+// Espèces attendues dans le tiroir d'une caisse depuis sa dernière clôture.
 // Les acomptes des ventes à crédit et les remboursements de retours sont comptés en espèces.
-export function cashExpected(state, until) {
-  const last = state.closings.at(-1);
+export function cashExpected(state, until, register = reg()) {
+  const mine = (x) => registerOf(x) === register;
+  const last = state.closings.filter(mine).at(-1);
   const from = last ? new Date(last.date).getTime() : 0;
   const to = until ? new Date(until).getTime() : Infinity;
-  const inRange = (d) => { const t = new Date(d).getTime(); return t > from && t <= to; };
+  const inRange = (x) => { const t = new Date(x.date).getTime(); return mine(x) && t > from && t <= to; };
   const b = { opening: last?.kept ?? 0, sales: 0, debtPayments: 0, refunds: 0, expenses: 0, suppliers: 0 };
   for (const s of state.sales)
-    if (inRange(s.date) && (s.payment === 'cash' || s.payment === 'credit')) b.sales += s.paid;
-  for (const p of state.payments) if (inRange(p.date) && p.method === 'cash') b.debtPayments += p.amount;
-  for (const r of state.returns) if (inRange(r.date)) b.refunds += r.refunded;
-  for (const e of state.expenses) if (inRange(e.date) && (e.method ?? 'cash') === 'cash') b.expenses += e.amount;
-  for (const p of state.purchases) if (inRange(p.date) && p.method === 'cash') b.suppliers += p.paid;
-  for (const p of state.supplierPayments) if (inRange(p.date) && p.method === 'cash') b.suppliers += p.amount;
+    if (inRange(s) && (s.payment === 'cash' || s.payment === 'credit')) b.sales += s.paid;
+  for (const p of state.payments) if (inRange(p) && p.method === 'cash') b.debtPayments += p.amount;
+  for (const r of state.returns) if (inRange(r)) b.refunds += r.refunded;
+  for (const e of state.expenses) if (inRange(e) && (e.method ?? 'cash') === 'cash') b.expenses += e.amount;
+  for (const p of state.purchases) if (inRange(p) && p.method === 'cash') b.suppliers += p.paid;
+  for (const p of state.supplierPayments) if (inRange(p) && p.method === 'cash') b.suppliers += p.amount;
   b.expected = b.opening + b.sales + b.debtPayments - b.refunds - b.expenses - b.suppliers;
   return b;
 }
@@ -450,9 +467,10 @@ export function addClosing(state, { counted, kept, note, date }) {
   kept = kept === '' || kept == null ? 0 : num(kept);
   if (kept < 0 || kept > counted) fail('Le fond de caisse doit être compris entre zéro et le montant compté.');
   const closingDate = iso(date);
-  const breakdown = cashExpected(state, closingDate);
+  const register = reg();
+  const breakdown = cashExpected(state, closingDate, register);
   const closing = {
-    id: uid(), date: closingDate, ...breakdown, counted, kept,
+    id: uid(), date: closingDate, register, ...breakdown, counted, kept,
     diff: counted - breakdown.expected, withdrawn: counted - kept,
     note: str(note), user: ctx?.user ?? '',
   };
@@ -500,13 +518,13 @@ export const canDo = (role, action) =>
   (role === 'manager' && !MANAGER_FORBIDDEN.includes(action)) ||
   (role === 'seller' && SELLER_ACTIONS.includes(action));
 
-// op : { id, ts, user, action, payload }. `lenient` : rejoue une opération déjà acceptée
+// op : { id, ts, user, register, action, payload }. `lenient` : rejoue une opération déjà acceptée
 // ailleurs sans la refuser pour stock insuffisant (la vente a réellement eu lieu).
 export function applyOp(state, op, { lenient: isLenient = false } = {}) {
   const action = ACTIONS[op.action];
   if (!action) fail(`Opération inconnue : ${op.action}`);
   const prev = ctx;
-  ctx = { id: op.id, ts: op.ts, user: op.user ?? '', lenient: isLenient, n: 0 };
+  ctx = { id: op.id, ts: op.ts, user: op.user ?? '', register: op.register ?? '', lenient: isLenient, n: 0 };
   try { return action(state, op.payload); } finally { ctx = prev; }
 }
 

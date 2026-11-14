@@ -15,7 +15,7 @@ export default function Ticket({ sale, state, fmt }) {
       {phone && <p className="c">Tél. {phone}</p>}
       <hr />
       <p>Facture {sale.number}</p>
-      <p>{new Date(sale.date).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' })}{sale.seller && ` · ${sale.seller}`}</p>
+      <p>{new Date(sale.date).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' })}{sale.register && ` · ${sale.register}`}{sale.seller && ` · ${sale.seller}`}</p>
       {customer && <p>Client : {customer.name}</p>}
       <hr />
       {sale.items.map((i) => (

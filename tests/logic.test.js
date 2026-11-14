@@ -294,3 +294,33 @@ test('vente au poids : quantités décimales, arrondis et étiquette de balance'
   s = addSale(s, { items: [{ productId: pain.id, qty: 2 }], payment: 'mobile', received: 1000 });
   assert.equal(s.sales[1].change, null);
 });
+
+// ---------- Plusieurs caisses dans une même boutique ----------
+import { registersOf } from '../src/lib/logic.js';
+
+test('plusieurs caisses : numérotation et clôture séparées par caisse', () => {
+  let s = shop();
+  const b = s.products[0];
+  const at = (h) => new Date(2026, 10, 14, h).toISOString();
+  const op = (id, register, action, payload, h) => ({ id, ts: at(h), user: 'x', register, action, payload });
+  const sale = (qty) => ({ items: [{ productId: b.id, qty }], payment: 'cash' });
+  s = applyOp(s, op('o1', 'Caisse 1', 'addSale', sale(1), 9));
+  s = applyOp(s, op('o2', 'Caisse 2', 'addSale', sale(2), 10));
+  s = applyOp(s, op('o3', 'Caisse 1', 'addSale', sale(1), 11));
+  assert.deepEqual(s.sales.map((x) => x.number.slice(8)), ['CAISSE1-00001', 'CAISSE2-00001', 'CAISSE1-00002']);
+  assert.deepEqual(registersOf(s), ['Caisse 1', 'Caisse 2']);
+  assert.equal(cashExpected(s, at(12), 'Caisse 1').expected, 20000);
+  assert.equal(cashExpected(s, at(12), 'Caisse 2').expected, 20000);
+  // une dépense payée sur la caisse 2 ne touche pas la caisse 1
+  s = applyOp(s, op('o4', 'Caisse 2', 'addExpense', { category: 'Transport', amount: 3000 }, 12));
+  assert.equal(cashExpected(s, at(13), 'Caisse 2').expected, 17000);
+  // clôture de la caisse 1 : la caisse 2 reste ouverte avec ses espèces
+  s = applyOp(s, op('o5', 'Caisse 1', 'addClosing', { counted: 19000, kept: 5000 }, 18));
+  assert.equal(s.closings[0].register, 'Caisse 1');
+  assert.equal(s.closings[0].diff, -1000);
+  assert.equal(cashExpected(s, at(19), 'Caisse 1').expected, 5000);
+  assert.equal(cashExpected(s, at(19), 'Caisse 2').expected, 17000);
+  // sans nom de caisse, l'ancienne numérotation continue
+  s = applyOp(s, op('o6', '', 'addSale', sale(1), 20));
+  assert.match(s.sales.at(-1).number, /^FA-2026-00001$/);
+});

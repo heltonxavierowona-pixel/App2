@@ -76,7 +76,7 @@ export const clearPendingShop = () => guard(async () => {
 export const pushOp = (shopId, op) => guard(async () => {
   const sb = await client();
   const { error } = await sb.from('commerce_ops').insert({
-    id: op.id, shop_id: shopId, user_name: op.user, action: op.action, payload: op.payload, ts: op.ts,
+    id: op.id, shop_id: shopId, user_name: op.user, register: op.register ?? '', action: op.action, payload: op.payload, ts: op.ts,
   });
   if (error && error.code !== '23505') throw translate(error); // 23505 : déjà envoyée
 });
@@ -84,9 +84,9 @@ export const pushOp = (shopId, op) => guard(async () => {
 export const pullOps = (shopId, afterSeq) => guard(async () => {
   const sb = await client();
   const rows = check(await sb.from('commerce_ops')
-    .select('seq, id, user_name, action, payload, ts')
+    .select('seq, id, user_name, register, action, payload, ts')
     .eq('shop_id', shopId).gt('seq', afterSeq).order('seq').limit(500));
-  return rows.map((r) => ({ seq: r.seq, id: r.id, user: r.user_name, action: r.action, payload: r.payload, ts: r.ts }));
+  return rows.map((r) => ({ seq: r.seq, id: r.id, user: r.user_name, register: r.register ?? '', action: r.action, payload: r.payload, ts: r.ts }));
 });
 
 export async function subscribeOps(shopId, onChange) {

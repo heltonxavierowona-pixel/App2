@@ -2,7 +2,7 @@
 // par mots-clés quand l'assistant en ligne n'est pas disponible.
 import {
   periodRange, metrics, topProducts, lowStock, customerBalance, expensesByCategory,
-  stockValue, totalDebt, totalSupplierDebt, supplierBalance, cashExpected,
+  stockValue, totalDebt, totalSupplierDebt, supplierBalance, cashExpected, registersOf, registerLabel,
 } from './logic.js';
 import { insights, velocities } from './insights.js';
 
@@ -46,7 +46,8 @@ export function buildContext(state, now = new Date()) {
     dettes_fournisseurs_total: round(totalSupplierDebt(state)),
     dettes_fournisseurs: state.suppliers.map((s) => ({ fournisseur: s.name, du: round(supplierBalance(state, s.id)) }))
       .filter((s) => s.du > 0),
-    especes_attendues_en_caisse: round(cashExpected(state, now).expected),
+    especes_attendues_par_caisse: Object.fromEntries(
+      (registersOf(state).length ? registersOf(state) : ['']).map((r) => [registerLabel(r), round(cashExpected(state, now, r).expected)])),
   };
 }
 
@@ -102,7 +103,8 @@ export function localAnswer(question, state, fmt, now = new Date()) {
       : 'Aucune dépense saisie sur cette période.';
   }
   if (has(q, 'caisse', 'espece', 'tiroir'))
-    return `Il devrait y avoir ${fmt(cashExpected(state, now).expected)} en espèces dans la caisse depuis la dernière clôture.`;
+    return 'Espèces attendues depuis la dernière clôture :\n' + (registersOf(state).length ? registersOf(state) : [''])
+      .map((r) => `• ${registerLabel(r)} : ${fmt(cashExpected(state, now, r).expected)}`).join('\n');
   if (has(q, 'conseil', 'ameliorer', 'faire quoi', 'recommand')) {
     const tips = insights(state, fmt, now).slice(0, 4);
     return tips.length ? tips.map((t) => `• ${t.title} — ${t.text}`).join('\n') : 'Rien à signaler pour le moment.';

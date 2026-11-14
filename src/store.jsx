@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { emptyState, normalize, applyOp, actionName, canDo } from './lib/logic.js';
 import { kvGet, kvSet, kvDel } from './lib/db.js';
 import * as cloud from './lib/cloud.js';
+import { readPrefs } from './lib/prefs.js';
 
 const StoreContext = createContext(null);
 export const useStore = () => useContext(StoreContext);
@@ -197,7 +198,7 @@ export function StoreProvider({ children }) {
     const current = s.shops.find((x) => x.id === s.currentShopId);
     if (!canDo(current.role, name)) { notify('Cette action est réservée au patron.', 'error'); return null; }
     const op = {
-      id: newId(), ts: new Date().toISOString(), user: s.userName, action: name,
+      id: newId(), ts: new Date().toISOString(), user: s.userName, register: readPrefs().register.trim(), action: name,
       payload: JSON.parse(JSON.stringify(payload ?? null)),
     };
     let next;

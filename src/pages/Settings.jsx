@@ -153,6 +153,10 @@ export default function Settings() {
 
       <section className="card">
         <h3>Ce poste de caisse</h3>
+        <Field label="Nom de cette caisse"
+          hint="Si la boutique a plusieurs caisses, donnez un nom différent à chaque poste (Caisse 1, Caisse 2…) : chacune aura sa propre clôture et sa propre numérotation de factures. Laissez vide s'il n'y a qu'une caisse.">
+          <input value={prefs.register} maxLength={20} placeholder="ex. Caisse 1" onChange={(e) => setPrefs({ register: e.target.value })} />
+        </Field>
         <div className="form-grid">
           <Field label="Impression après une vente">
             <select value={prefs.printFormat} onChange={(e) => setPrefs({ printFormat: e.target.value })}>

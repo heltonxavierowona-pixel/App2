@@ -330,7 +330,7 @@ function History() {
           <tbody>
             {sales.slice(0, limit).map((s) => (
               <tr key={s.id} className="clickable" onClick={() => setOpen(s.id)}>
-                <td><strong>{s.number}</strong><div className="muted">{fmtDateTime(s.date)}{s.seller && ` · ${s.seller}`}</div></td>
+                <td><strong>{s.number}</strong><div className="muted">{fmtDateTime(s.date)}{s.register && ` · ${s.register}`}{s.seller && ` · ${s.seller}`}</div></td>
                 <td>{s.items.map((i) => `${i.qty} × ${i.name}`).join(', ')}
                   {state.returns.some((r) => r.saleId === s.id) && <span className="badge warn">retour</span>}</td>
                 <td>{PAYMENTS[s.payment]}{s.customerId && ` · ${customer(s.customerId)?.name ?? ''}`}</td>

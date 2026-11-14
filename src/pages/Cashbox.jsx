@@ -1,14 +1,18 @@
 import React, { useMemo, useState } from 'react';
 import { useStore } from '../store.jsx';
 import { Icon, PageHead, Field, Empty, fmtDateTime } from '../ui.jsx';
-import { addClosing, cashExpected } from '../lib/logic.js';
+import { addClosing, cashExpected, registersOf, registerLabel, registerOf } from '../lib/logic.js';
+import { readPrefs } from '../lib/prefs.js';
 
 export default function Cashbox() {
-  const { state, run, fmt } = useStore();
+  const { state, run, fmt, canManage } = useStore();
+  const mine = readPrefs().register.trim();
+  const [register, setRegister] = useState(mine);
+  const registers = useMemo(() => [...new Set([mine, ...registersOf(state)])].sort(), [state, mine]);
   const [f, setF] = useState({ counted: '', kept: '', note: '' });
   const set = (k) => (e) => setF({ ...f, [k]: e.target.value });
-  const b = useMemo(() => cashExpected(state), [state]);
-  const last = state.closings.at(-1);
+  const b = useMemo(() => cashExpected(state, undefined, register), [state, register]);
+  const last = state.closings.filter((c) => registerOf(c) === register).at(-1);
   const counted = f.counted === '' ? null : Number(f.counted);
   const diff = counted == null ? null : counted - b.expected;
   const history = useMemo(() => [...state.closings].reverse(), [state.closings]);
@@ -31,7 +35,13 @@ export default function Cashbox() {
   return (
     <>
       <PageHead title="Clôture de caisse"
-        sub={last ? `Dernière clôture : ${fmtDateTime(last.date)}` : 'Comparez les espèces comptées aux espèces attendues'} />
+        sub={`${registerLabel(register)} · ${last ? `dernière clôture : ${fmtDateTime(last.date)}` : 'jamais clôturée'}`}>
+        {canManage && registers.length > 1 && (
+          <select className="auto" value={register} onChange={(e) => setRegister(e.target.value)} aria-label="Caisse">
+            {registers.map((r) => <option key={r} value={r}>{registerLabel(r)}{r === mine ? ' (ce poste)' : ''}</option>)}
+          </select>
+        )}
+      </PageHead>
 
       <div className="grid-2">
         <section className="card">
@@ -53,7 +63,9 @@ export default function Cashbox() {
 
         <section className="card">
           <h3>Compter la caisse</h3>
-          <form onSubmit={submit}>
+          {register !== mine ? (
+            <p className="note">Vous consultez {registerLabel(register)}. La clôture se fait depuis le poste de cette caisse.</p>
+          ) : <form onSubmit={submit}>
             <Field label="Espèces comptées">
               <input type="number" min="0" inputMode="numeric" required value={f.counted} onChange={set('counted')} />
             </Field>
@@ -69,7 +81,7 @@ export default function Cashbox() {
             </Field>
             <Field label="Note (facultatif)"><input value={f.note} onChange={set('note')} /></Field>
             <button className="btn primary big" type="submit"><Icon name="check" size={18} /> Clôturer la caisse</button>
-          </form>
+          </form>}
         </section>
       </div>
 
@@ -80,11 +92,12 @@ export default function Cashbox() {
         ) : (
           <div className="table-wrap">
             <table>
-              <thead><tr><th>Date</th><th className="r">Attendu</th><th className="r">Compté</th><th className="r">Écart</th><th className="r">Retiré</th><th>Par</th></tr></thead>
+              <thead><tr><th>Date</th><th>Caisse</th><th className="r">Attendu</th><th className="r">Compté</th><th className="r">Écart</th><th className="r">Retiré</th><th>Par</th></tr></thead>
               <tbody>
                 {history.slice(0, 60).map((c) => (
                   <tr key={c.id}>
                     <td>{fmtDateTime(c.date)}{c.note && <div className="muted">{c.note}</div>}</td>
+                    <td>{registerLabel(registerOf(c))}</td>
                     <td className="r num">{fmt(c.expected)}</td>
                     <td className="r num">{fmt(c.counted)}</td>
                     <td className="r"><span className={`badge ${c.diff === 0 ? 'ok' : 'crit'}`}>{c.diff > 0 ? '+' : ''}{fmt(c.diff)}</span></td>
