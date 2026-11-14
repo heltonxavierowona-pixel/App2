@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-14 -6 272 272" role="img" aria-label="Numera">
+  <rect x="-14" y="-6" width="272" height="272" rx="56" fill="#ffffff"/>
+  <defs>
+    <linearGradient id="fav-green" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#00875A"/><stop offset="100%" stop-color="#00E676"/>
+    </linearGradient>
+    <linearGradient id="fav-blue" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#0A3B66"/><stop offset="100%" stop-color="#051E36"/>
+    </linearGradient>
+  </defs>
+  <path d="M 20,180 L 120,200 L 220,180 L 220,210 L 120,230 L 20,210 Z" fill="#0A3B66" opacity="0.15"/>
+  <path d="M 10,195 L 120,220 L 230,195" fill="none" stroke="#0A3B66" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="45" y="100" width="32" height="90" rx="4" fill="url(#fav-blue)"/>
+  <rect x="95" y="60" width="32" height="130" rx="4" fill="url(#fav-blue)"/>
+  <rect x="145" y="30" width="32" height="160" rx="4" fill="url(#fav-green)"/>
+  <path d="M 20,150 L 80,170 L 130,110 L 225,35" fill="none" stroke="url(#fav-green)" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M 180,30 L 230,30 L 230,80" fill="none" stroke="url(#fav-green)" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
